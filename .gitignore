@@ -1,0 +1,42 @@
+# ==========================================
+# PDKS Projesi Ana .gitignore Dosyası
+# ==========================================
+
+# 1. IDE ve İşletim Sistemi Dosyaları
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+
+# 2. Genel Log Dosyaları
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 3. pdks-backend (Spring Boot & Maven)
+pdks-backend/target/
+pdks-backend/bin/
+pdks-backend/build/
+pdks-backend/*.class
+pdks-backend/*.jar
+pdks-backend/*.war
+pdks-backend/*.ear
+
+# 4. PdksMobile (React Native & Node)
+PdksMobile/node_modules/
+PdksMobile/android/app/build/
+PdksMobile/android/.gradle/
+PdksMobile/android/local.properties
+PdksMobile/ios/Pods/
+PdksMobile/ios/build/
+PdksMobile/.expo/
+PdksMobile/coverage/
+
+# 5. Hassas ve Kişisel Dosyalar (Secrets & Local Configs)
+pdks-backend/src/main/resources/application.properties
+pdks-backend/src/main/resources/tls-override.security
