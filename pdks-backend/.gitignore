@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Credentials — şifre ve secret içeren dosyalar commit'lenmez ###
+src/main/resources/application.properties

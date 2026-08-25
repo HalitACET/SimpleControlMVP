@@ -48,10 +48,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.microsoft.sqlserver</groupId>
-			<artifactId>mssql-jdbc</artifactId>
-			<!-- SQL Server 2012 TLS 1.0 uyumluluğu — yeni sürüm (13.x) TLS1.0'ı reddeder -->
-			<version>7.4.1.jre8</version>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -104,8 +102,6 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
-					<!-- SQL Server 2012 TLS 1.0 uyumluluğu — lokal geliştirme ortamı için -->
-					<jvmArguments>-Djava.security.properties=D:/Projelerim/PDKS/pdks-backend/src/main/resources/tls-override.security</jvmArguments>
 				</configuration>
 			</plugin>
 			<plugin>
