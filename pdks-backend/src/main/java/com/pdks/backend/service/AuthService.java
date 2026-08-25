@@ -7,6 +7,7 @@ import com.pdks.backend.entity.Device;
 import com.pdks.backend.entity.Role;
 import com.pdks.backend.entity.User;
 import com.pdks.backend.exception.DeviceMismatchException;
+import com.pdks.backend.exception.DeviceRequiredException;
 import com.pdks.backend.repository.DeviceRepository;
 import com.pdks.backend.repository.UserRepository;
 import com.pdks.backend.security.JwtService;
@@ -60,10 +61,14 @@ public class AuthService {
         // ─── Rol ve Cihaz Kontrolleri ───────────────────
         boolean deviceRegistered = false;
 
-        if (user.getRole() == Role.ADMIN || "ADMIN-PANEL".equals(request.getDeviceId())) {
-            // Admin veya admin paneli (ADMIN-PANEL) üzerinden giriş yapıldığında cihaz doğrulaması yapılmaz
-            deviceRegistered = (user.getRole() == Role.ADMIN);
+        if (user.getRole() == Role.ADMIN) {
+            // Admin hesapları cihaz doğrulamasından muaf
+            deviceRegistered = true;
         } else {
+            // EMPLOYEE: deviceId zorunlu — null veya boş ise doğrudan 403
+            if (request.getDeviceId() == null || request.getDeviceId().isBlank()) {
+                throw new DeviceRequiredException();
+            }
             Optional<Device> registeredDevice = deviceRepository.findByUser(user);
             if (registeredDevice.isEmpty()) {
                 // Durum 1: Henüz kayıtlı cihaz yok — mobil /device/register çağıracak

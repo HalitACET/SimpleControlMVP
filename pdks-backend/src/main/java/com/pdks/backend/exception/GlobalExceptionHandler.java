@@ -37,6 +37,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 403 DEVICE_REQUIRED — EMPLOYEE deviceId göndermeden giriş yapmaya çalıştığında
+     */
+    @ExceptionHandler(DeviceRequiredException.class)
+    public ResponseEntity<Map<String, Object>> handleDeviceRequired(DeviceRequiredException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DEVICE_REQUIRED");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    /**
      * 400 INVALID_QR — yalnızca bu exception için özel format
      */
     @ExceptionHandler(InvalidQrException.class)

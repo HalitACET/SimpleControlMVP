@@ -21,7 +21,6 @@ public class LoginRequest {
     @NotBlank(message = "Şifre boş olamaz")
     private String password;
 
-    /** Cihaz bağlama kontrolü için mobil cihazın UUID'si */
-    @NotBlank(message = "Cihaz ID boş olamaz")
+    /** Cihaz bağlama kontrolü için mobil cihazın UUID'si — EMPLOYEE rolü için zorunlu */
     private String deviceId;
 }
