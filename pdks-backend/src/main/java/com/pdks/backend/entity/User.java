@@ -10,7 +10,8 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 /**
- * Personel/kullanıcı tablosu.
+ * Giriş/kimlik doğrulama tablosu.
+ * Personel bilgisi (ad, soyad, kart) Employee entity'sine taşındı.
  * Tablo adı "users" — SQL Server'da "user" rezerve kelimedir, çakışma olmasın.
  */
 @Entity
@@ -38,8 +39,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(length = 150)
-    private String fullName;
+    /** Bağlı personel kaydı — opsiyonel, bir kullanıcının personel kaydı olmayabilir */
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "employee_id", unique = true)
+    private Employee employee;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

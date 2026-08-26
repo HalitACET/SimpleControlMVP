@@ -69,6 +69,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
+    /**
+     * 409 DUPLICATE_CARD_NO — aynı firmada aktif personelde kart numarası çakışması
+     */
+    @ExceptionHandler(DuplicateCardNoException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateCardNo(DuplicateCardNoException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_CARD_NO");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     // ─── ResponseStatusException (401, 409, 404 vb.) ─────────────────────────
 
     /**

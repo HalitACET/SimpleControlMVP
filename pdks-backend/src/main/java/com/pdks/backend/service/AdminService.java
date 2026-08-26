@@ -97,7 +97,7 @@ public class AdminService {
                         .id(u.getId())
                         .firmId(u.getFirmId())
                         .username(u.getUsername())
-                        .fullName(u.getFullName())
+                        .fullName(resolveFullName(u))
                         .role(u.getRole().name())
                         .active(u.isActive())
                         .mustChangePassword(u.isMustChangePassword())
@@ -131,7 +131,6 @@ public class AdminService {
         User newUser = User.builder()
                 .firmId(firmId)
                 .username(request.getUsername().trim())
-                .fullName(request.getFullName().trim())
                 .password(passwordEncoder.encode(request.getInitialPassword()))
                 .role(userRole)
                 .mustChangePassword(true)
@@ -144,7 +143,7 @@ public class AdminService {
                 .id(saved.getId())
                 .firmId(saved.getFirmId())
                 .username(saved.getUsername())
-                .fullName(saved.getFullName())
+                .fullName(resolveFullName(saved))
                 .role(saved.getRole().name())
                 .active(saved.isActive())
                 .mustChangePassword(saved.isMustChangePassword())
@@ -183,7 +182,7 @@ public class AdminService {
                         .deviceName(d.getDeviceName())
                         .registeredAt(d.getRegisteredAt())
                         .username(d.getUser().getUsername())
-                        .fullName(d.getUser().getFullName())
+                        .fullName(resolveFullName(d.getUser()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -214,7 +213,7 @@ public class AdminService {
         return transactions.map(t -> AdminTransactionItem.builder()
                 .id(t.getId())
                 .username(t.getUser().getUsername())
-                .fullName(t.getUser().getFullName())
+                .fullName(resolveFullName(t.getUser()))
                 .type(t.getType().name())
                 .timestamp(t.getTimestamp())
                 .locationName(t.getLocation() != null ? t.getLocation().getName() : "Konum: Kaydedildi")
@@ -237,7 +236,7 @@ public class AdminService {
         return attempts.map(sa -> SuspiciousAttemptItem.builder()
                 .id(sa.getId())
                 .username(sa.getUser().getUsername())
-                .fullName(sa.getUser().getFullName())
+                .fullName(resolveFullName(sa.getUser()))
                 .timestamp(sa.getTimestamp())
                 .latitude(sa.getLatitude())
                 .longitude(sa.getLongitude())
@@ -366,7 +365,6 @@ public class AdminService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bu kullanıcıyı güncellemeye yetkiniz yok.");
         }
 
-        user.setFullName(request.getFullName().trim());
         User saved = userRepository.save(user);
 
         boolean hasDevice = deviceRepository.existsByUser(saved);
@@ -375,7 +373,7 @@ public class AdminService {
                 .id(saved.getId())
                 .firmId(saved.getFirmId())
                 .username(saved.getUsername())
-                .fullName(saved.getFullName())
+                .fullName(resolveFullName(saved))
                 .role(saved.getRole().name())
                 .active(saved.isActive())
                 .mustChangePassword(saved.isMustChangePassword())
@@ -440,7 +438,7 @@ public class AdminService {
                 for (TransactionRecord t : transactions) {
                     String dateStr = t.getTimestamp() != null ? t.getTimestamp().format(dateFormatter) : "-";
                     String timeStr = t.getTimestamp() != null ? t.getTimestamp().format(timeFormatter) : "-";
-                    String fullName = t.getUser().getFullName() != null ? t.getUser().getFullName() : "";
+                    String fullName = resolveFullName(t.getUser());
                     String uName = t.getUser().getUsername() != null ? t.getUser().getUsername() : "";
                     String type = t.getType() != null ? t.getType().name() : "";
                     String locationName = t.getLocation() != null ? t.getLocation().getName() : "Konum: Kaydedildi";
@@ -487,6 +485,18 @@ public class AdminService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "Kullanıcı bulunamadı."));
+    }
+
+    /**
+     * Kullanıcının görünen adını çözer.
+     * Bağlı personel kaydı varsa ad+soyad, yoksa username döner.
+     */
+    private static String resolveFullName(User user) {
+        Employee emp = user.getEmployee();
+        if (emp != null) {
+            return emp.getFirstName() + " " + emp.getLastName();
+        }
+        return user.getUsername();
     }
 
     // ─── Shift Management ──────────────────────────────────────────────────────
@@ -584,7 +594,7 @@ public class AdminService {
                 .id(saved.getId())
                 .firmId(saved.getFirmId())
                 .username(saved.getUsername())
-                .fullName(saved.getFullName())
+                .fullName(resolveFullName(saved))
                 .role(saved.getRole().name())
                 .active(saved.isActive())
                 .mustChangePassword(saved.isMustChangePassword())
@@ -631,7 +641,7 @@ public class AdminService {
         return AdminTransactionItem.builder()
                 .id(saved.getId())
                 .username(saved.getUser().getUsername())
-                .fullName(saved.getUser().getFullName())
+                .fullName(resolveFullName(saved.getUser()))
                 .type(saved.getType().name())
                 .timestamp(saved.getTimestamp())
                 .locationName("Manuel Kayıt")

@@ -2,6 +2,7 @@ package com.pdks.backend.service;
 
 import com.pdks.backend.dto.admin.TimesheetResponse;
 import com.pdks.backend.dto.TimesheetSummaryResponse;
+import com.pdks.backend.entity.Employee;
 import com.pdks.backend.entity.Shift;
 import com.pdks.backend.entity.TransactionRecord;
 import com.pdks.backend.entity.TransactionType;
@@ -357,7 +358,9 @@ public class TimesheetService {
         return TimesheetResponse.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
-                .fullName(user.getFullName())
+                .fullName(user.getEmployee() != null
+                        ? user.getEmployee().getFirstName() + " " + user.getEmployee().getLastName()
+                        : user.getUsername())
                 .shiftName(shiftName)
                 .year(year)
                 .month(month)

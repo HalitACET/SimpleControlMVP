@@ -88,9 +88,14 @@ public class AuthService {
         // JWT üret ve yanıtı oluştur
         String token = jwtService.generateToken(user);
 
+        // fullName: personel kaydı varsa ad+soyad, yoksa username
+        String fullName = (user.getEmployee() != null)
+                ? user.getEmployee().getFirstName() + " " + user.getEmployee().getLastName()
+                : user.getUsername();
+
         return LoginResponse.builder()
                 .token(token)
-                .fullName(user.getFullName())
+                .fullName(fullName)
                 .role(user.getRole())
                 .mustChangePassword(user.isMustChangePassword())
                 .deviceRegistered(deviceRegistered)
