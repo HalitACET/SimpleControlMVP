@@ -5,6 +5,8 @@ import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
 import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
 import FormInput from '../ui/form/FormInput';
+import FormSelect from '../ui/form/FormSelect';
+import { type WorkGroupListResponse } from '../../pages/WorkGroups';
 import styles from './EmployeeDrawer.module.css';
 
 interface Employee {
@@ -12,6 +14,7 @@ interface Employee {
   firstName: string;
   lastName: string;
   cardNo: string;
+  workGroupId?: number;
 }
 
 interface EmployeeDrawerProps {
@@ -25,6 +28,8 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [cardNo, setCardNo] = useState('');
+  const [workGroupId, setWorkGroupId] = useState('');
+  const [workGroups, setWorkGroups] = useState<WorkGroupListResponse[]>([]);
   
   const [fieldErrors, setFieldErrors] = useState<{ firstName?: string; lastName?: string; cardNo?: string }>({});
   const [globalError, setGlobalError] = useState('');
@@ -47,14 +52,18 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
       setIsDirty(false);
       setIsSubmitting(false);
 
+      api.get('/admin/work-groups').then(res => setWorkGroups(res.data)).catch(err => setGlobalError(handleApiError(err)));
+
       if (employeeToEdit) {
         setFirstName(employeeToEdit.firstName);
         setLastName(employeeToEdit.lastName);
         setCardNo(employeeToEdit.cardNo);
+        setWorkGroupId(employeeToEdit.workGroupId ? String(employeeToEdit.workGroupId) : '');
       } else {
         setFirstName('');
         setLastName('');
         setCardNo('');
+        setWorkGroupId('');
       }
 
       // Focus first input on open
@@ -150,7 +159,7 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
     setGlobalError('');
 
     try {
-      const payload = { firstName, lastName, cardNo };
+      const payload = { firstName, lastName, cardNo, workGroupId: workGroupId ? parseInt(workGroupId) : null };
       if (isEdit) {
         await api.put(`/admin/employees/${employeeToEdit.id}`, payload);
         showToast('Personel başarıyla güncellendi', 'success');
@@ -242,6 +251,15 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
               error={fieldErrors.cardNo}
               hint="Terminalde okutulan kartın üzerindeki numara."
               isMono
+            />
+            <FormSelect
+              label="Çalışma Grubu"
+              value={workGroupId}
+              onChange={(e) => {
+                setWorkGroupId(e.target.value);
+                if (!isDirty) setIsDirty(true);
+              }}
+              options={[{ value: '', label: 'Atanmamış' }, ...workGroups.map(wg => ({ value: String(wg.id), label: wg.name }))]}
             />
           </form>
         </div>

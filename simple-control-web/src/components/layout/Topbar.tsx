@@ -6,6 +6,7 @@ const routeMappings: Record<string, { group: string; title: string }> = {
   '/employees': { group: 'Tanımlar', title: 'Personel Listesi' },
   '/shifts': { group: 'Tanımlar', title: 'Vardiyalar' },
   '/work-groups': { group: 'Tanımlar', title: 'Çalışma Grupları' },
+  '/holidays': { group: 'Tanımlar', title: 'Tatiller' },
   '/styleguide': { group: 'Sistem', title: 'Tasarım Sistemi' }
 };
 

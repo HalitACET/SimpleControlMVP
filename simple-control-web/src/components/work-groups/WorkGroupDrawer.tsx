@@ -249,7 +249,7 @@ export default function WorkGroupDrawer({ isOpen, onClose, onSuccess, groupToEdi
           </button>
         </div>
 
-        <div className={styles.body}>
+        <div className={styles.body} style={{ minHeight: 0 }}>
           {globalError && <div className={styles.globalError}>{globalError}</div>}
           
           <form id="workgroup-form" onSubmit={handleSubmit}>

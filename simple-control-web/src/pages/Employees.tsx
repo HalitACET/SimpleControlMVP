@@ -10,6 +10,8 @@ interface Employee {
   firstName: string;
   lastName: string;
   cardNo: string;
+  workGroupId?: number;
+  workGroupName?: string;
 }
 
 export default function Employees() {
