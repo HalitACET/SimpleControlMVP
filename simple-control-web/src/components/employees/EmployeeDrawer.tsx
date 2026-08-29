@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, type FormEvent } from 'react';
 import { X } from 'lucide-react';
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
+import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
 import FormInput from '../ui/form/FormInput';
 import styles from './EmployeeDrawer.module.css';
 
@@ -35,6 +36,7 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
   const [triggerElement, setTriggerElement] = useState<HTMLElement | null>(null);
 
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const isEdit = !!employeeToEdit;
 
   useEffect(() => {
@@ -105,9 +107,14 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
     };
   }, [isOpen, isDirty]);
 
-  const handleCloseRequest = () => {
+  const handleCloseRequest = async () => {
     if (isDirty) {
-      const confirmClose = window.confirm('Kaydedilmemiş değişiklikler var, çıkmak istediğinize emin misiniz?');
+      const confirmClose = await confirm({
+        title: 'Kaydetmeden Çık',
+        message: 'Kaydedilmemiş değişiklikler var, çıkmak istediğinize emin misiniz?',
+        confirmText: 'Evet, Çık',
+        cancelText: 'Vazgeç'
+      });
       if (!confirmClose) return;
     }
     onClose();
@@ -166,7 +173,13 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
 
   const handleDelete = async () => {
     if (!employeeToEdit) return;
-    const confirmDelete = window.confirm('Bu personeli silmek istediğinize emin misiniz?\n\nPersonel kaydı korunur ancak listede görünmez (Geri alınabilir).');
+    const confirmDelete = await confirm({
+      title: 'Personeli Sil',
+      message: 'Bu personeli silmek istediğinize emin misiniz?\n\nPersonel kaydı korunur ancak listede görünmez (Geri alınabilir).',
+      confirmText: 'Evet, Sil',
+      cancelText: 'Vazgeç',
+      danger: true
+    });
     if (!confirmDelete) return;
 
     setIsSubmitting(true);

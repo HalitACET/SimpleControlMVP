@@ -1,0 +1,112 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-xl);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  animation: scaleIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-title);
+  font-weight: var(--font-weight-semibold);
+}
+
+.message {
+  margin: 0;
+  color: var(--color-text-primary-variant);
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.cancelBtn, .confirmBtn {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.1s, border-color 0.1s, color 0.1s;
+  outline: none;
+}
+
+.cancelBtn {
+  background-color: transparent;
+  color: var(--color-text-primary-variant);
+  border: 1px solid var(--color-border);
+}
+
+.cancelBtn:hover {
+  background-color: var(--color-surface-sunken);
+  border-color: var(--color-border-hover);
+}
+
+.cancelBtn:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-hover);
+}
+
+.confirmBtn {
+  border: 1px solid transparent;
+  color: var(--color-text-inverse);
+}
+
+.confirmBtn.normal {
+  background-color: var(--color-accent);
+}
+
+.confirmBtn.normal:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.confirmBtn.normal:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-accent);
+}
+
+.confirmBtn.danger {
+  background-color: var(--color-error);
+}
+
+.confirmBtn.danger:hover {
+  background-color: #b93b2f; /* Darker error */
+}
+
+.confirmBtn.danger:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-error);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

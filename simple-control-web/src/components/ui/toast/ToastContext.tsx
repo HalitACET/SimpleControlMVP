@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { CheckCircle2, AlertCircle, X } from 'lucide-react';
 import styles from './ToastContext.module.css';
 

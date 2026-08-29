@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Users, Cpu, MapPin, Clock, CalendarDays, FileText, Palette, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Users, Cpu, MapPin, Clock, CalendarDays, FileText, Palette, ChevronsLeft, ChevronsRight, Layers } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar() {
@@ -14,20 +14,21 @@ export default function Sidebar() {
 
   const location = useLocation();
 
-  const groups = [
+    const groups = [
     {
       label: 'Tanımlar',
       items: [
         { label: 'Personel', path: '/employees', icon: <Users size={18} /> },
         { label: 'Cihazlar', path: '#cihazlar', icon: <Cpu size={18} /> },
         { label: 'Lokasyonlar', path: '#lokasyonlar', icon: <MapPin size={18} /> },
+        { label: 'Vardiyalar', path: '/shifts', icon: <CalendarDays size={18} /> },
+        { label: 'Çalışma Grupları', path: '/work-groups', icon: <Layers size={18} /> },
       ],
     },
     {
       label: 'İşlemler',
       items: [
         { label: 'Puantaj', path: '#puantaj', icon: <Clock size={18} /> },
-        { label: 'Vardiyalar', path: '#vardiyalar', icon: <CalendarDays size={18} /> },
       ],
     },
     {

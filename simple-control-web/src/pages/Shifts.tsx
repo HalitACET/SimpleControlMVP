@@ -2,31 +2,49 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { handleApiError } from '../utils/errorHandler';
-import EmployeeDrawer from '../components/employees/EmployeeDrawer';
+import ShiftDrawer from '../components/shifts/ShiftDrawer';
 import styles from '../components/ui/table/Table.module.css';
 
-interface Employee {
+export interface Shift {
   id: number;
-  firstName: string;
-  lastName: string;
-  cardNo: string;
+  name: string;
+  startTime: string; // e.g. "08:00:00"
+  endTime: string;
+  durationMinutes: number;
+  breakMinutes: number;
+  lateToleranceMinutes: number;
+  earlyExitToleranceMinutes: number;
+  crossesMidnight: boolean;
 }
 
-export default function Employees() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
+const formatTime = (timeStr: string) => {
+  if (!timeStr) return '';
+  return timeStr.substring(0, 5); // "08:00:00" -> "08:00"
+};
+
+const formatDuration = (totalMinutes: number) => {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0 && minutes > 0) return `${hours}s ${minutes}dk`;
+  if (hours > 0) return `${hours}s`;
+  return `${minutes}dk`;
+};
+
+export default function Shifts() {
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
 
   const navigate = useNavigate();
 
-  const fetchEmployees = async () => {
+  const fetchShifts = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/admin/employees');
-      setEmployees(response.data);
+      const response = await api.get('/admin/shifts');
+      setShifts(response.data);
     } catch (err: unknown) {
       setError(handleApiError(err));
     } finally {
@@ -39,23 +57,23 @@ export default function Employees() {
     if (!token) {
       navigate('/login');
     } else {
-      fetchEmployees();
+      fetchShifts();
     }
   }, [navigate]);
 
-  const handleNewPersonel = () => {
-    setSelectedEmployee(null);
+  const handleNewShift = () => {
+    setSelectedShift(null);
     setIsDrawerOpen(true);
   };
 
-  const handleEditPersonel = (emp: Employee) => {
-    setSelectedEmployee(emp);
+  const handleEditShift = (shift: Shift) => {
+    setSelectedShift(shift);
     setIsDrawerOpen(true);
   };
 
   const handleDrawerSuccess = () => {
     setIsDrawerOpen(false);
-    fetchEmployees();
+    fetchShifts();
   };
 
   return (
@@ -68,7 +86,7 @@ export default function Employees() {
       
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-lg)' }}>
         <button
-          onClick={handleNewPersonel}
+          onClick={handleNewShift}
           style={{
             height: '34px',
             padding: '0 14px',
@@ -84,7 +102,7 @@ export default function Employees() {
             boxShadow: '0 1px 2px rgba(28,28,30,.10)'
           }}
         >
-          ＋ Yeni Personel
+          + Yeni Vardiya
         </button>
       </div>
 
@@ -92,49 +110,64 @@ export default function Employees() {
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
-              <th className={styles.th}>Ad Soyad</th>
-              <th className={styles.th} style={{ width: '150px' }}>Kart No</th>
-              <th className={styles.th} style={{ width: '120px' }}>Durum</th>
+              <th className={styles.th}>Vardiya Adı</th>
+              <th className={styles.th}>Saat Aralığı</th>
+              <th className={styles.th}>Süre</th>
+              <th className={styles.th}>Mola</th>
+              <th className={styles.th}>Tolerans (Geç / Erken)</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               // SKELETON
-              Array.from({ length: 5 }).map((_, i) => (
+              Array.from({ length: 3 }).map((_, i) => (
                 <tr key={i} className={styles.tr}>
                   <td className={styles.td}><div className={styles.skeleton} style={{ width: '120px' }}></div></td>
+                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '100px' }}></div></td>
+                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '60px' }}></div></td>
+                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '50px' }}></div></td>
                   <td className={styles.td}><div className={styles.skeleton} style={{ width: '80px' }}></div></td>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '60px', borderRadius: 'var(--radius-full)' }}></div></td>
                 </tr>
               ))
-            ) : employees.length === 0 ? (
+            ) : shifts.length === 0 ? (
               // EMPTY STATE
               <tr>
-                <td colSpan={3}>
+                <td colSpan={5}>
                   <div className={styles.emptyState}>
-                    Henüz personel eklenmemiş
+                    Henüz vardiya eklenmemiş
                   </div>
                 </td>
               </tr>
             ) : (
               // DATA
-              employees.map((emp) => (
+              shifts.map((shift) => (
                 <tr 
-                  key={emp.id} 
+                  key={shift.id} 
                   className={styles.tr}
-                  onClick={() => handleEditPersonel(emp)}
+                  onClick={() => handleEditShift(shift)}
                   tabIndex={0}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleEditPersonel(emp);
+                    if (e.key === 'Enter') handleEditShift(shift);
                   }}
                   role="button"
                 >
                   <td className={styles.tdPrimary}>
-                    {emp.firstName} {emp.lastName}
+                    {shift.name}
                   </td>
-                  <td className={styles.tdMono}>{emp.cardNo}</td>
+                  <td className={styles.tdMono}>
+                    {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
+                    {shift.crossesMidnight && (
+                      <span className={styles.nightBadge}>Gece</span>
+                    )}
+                  </td>
                   <td className={styles.td}>
-                    <span className={styles.statusBadge}>Aktif</span>
+                    {formatDuration(shift.durationMinutes)}
+                  </td>
+                  <td className={styles.td}>
+                    {shift.breakMinutes} dk
+                  </td>
+                  <td className={styles.td}>
+                    {shift.lateToleranceMinutes} dk / {shift.earlyExitToleranceMinutes} dk
                   </td>
                 </tr>
               ))
@@ -143,11 +176,11 @@ export default function Employees() {
         </table>
       </div>
 
-      <EmployeeDrawer
+      <ShiftDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         onSuccess={handleDrawerSuccess}
-        employeeToEdit={selectedEmployee}
+        shiftToEdit={selectedShift}
       />
     </div>
   );

@@ -41,12 +41,10 @@
 
 .logoTextContainer {
   min-width: 0;
-  opacity: 1;
-  visibility: visible;
   transition: opacity 0.16s ease, visibility 0s linear 0s;
 }
 
-.collapsed .logoTextContainer {
+.sidebar.sidebar.collapsed .logoTextContainer {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.16s ease, visibility 0s linear 0.16s;
@@ -84,12 +82,10 @@
   letter-spacing: 0.08em;
   color: var(--color-text-inverse-muted);
   white-space: nowrap;
-  opacity: 1;
-  visibility: visible;
   transition: opacity 0.16s ease, visibility 0s linear 0s;
 }
 
-.collapsed .groupLabel {
+.sidebar.collapsed .groupLabel {
   opacity: 0;
   visibility: hidden;
   height: 0;
@@ -144,12 +140,10 @@
 }
 
 .navItemText {
-  opacity: 1;
-  visibility: visible;
   transition: opacity 0.16s ease, visibility 0s linear 0s;
 }
 
-.collapsed .navItemText {
+.sidebar.collapsed .navItemText {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.16s ease, visibility 0s linear 0.16s;
@@ -192,12 +186,10 @@
 }
 
 .collapseText {
-  opacity: 1;
-  visibility: visible;
   transition: opacity 0.16s ease, visibility 0s linear 0s;
 }
 
-.collapsed .collapseText {
+.sidebar.collapsed .collapseText {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.16s ease, visibility 0s linear 0.16s;
