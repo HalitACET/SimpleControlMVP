@@ -9,4 +9,7 @@ import java.util.Optional;
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
     List<Shift> findByFirmId(String firmId);
     Optional<Shift> findByFirmIdAndId(String firmId, Long id);
+    List<Shift> findByFirmIdAndActiveTrue(String firmId);
+    Optional<Shift> findByFirmIdAndIdAndActiveTrue(String firmId, Long id);
+    Optional<Shift> findByFirmIdAndNameIgnoreCaseAndActiveTrue(String firmId, String name);
 }

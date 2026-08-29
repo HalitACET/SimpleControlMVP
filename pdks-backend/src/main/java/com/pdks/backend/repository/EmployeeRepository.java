@@ -16,4 +16,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     /** Firma + kart no ile aktif personel arar — çakışma kontrolü için */
     Optional<Employee> findByFirmIdAndCardNoAndActiveTrue(String firmId, String cardNo);
+
+    int countByFirmIdAndWorkGroupIdAndActiveTrue(String firmId, Long workGroupId);
 }

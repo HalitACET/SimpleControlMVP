@@ -40,5 +40,9 @@ public class Shift {
 
     @Column(nullable = false)
     @Builder.Default
+    private Integer earlyExitToleranceMinutes = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 }

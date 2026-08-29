@@ -14,9 +14,7 @@ import java.time.LocalDateTime;
  * Bir personelin kullanıcı hesabı olmayabilir (users.employee_id NULL kalır).
  */
 @Entity
-@Table(name = "employees", uniqueConstraints = {
-    @UniqueConstraint(name = "uq_employees_firm_card", columnNames = {"firm_id", "card_no"})
-})
+@Table(name = "employees")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,6 +45,10 @@ public class Employee {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "work_group_id", foreignKey = @ForeignKey(name = "fk_employees_work_group"))
+    private WorkGroup workGroup;
 
     @PrePersist
     protected void onCreate() {

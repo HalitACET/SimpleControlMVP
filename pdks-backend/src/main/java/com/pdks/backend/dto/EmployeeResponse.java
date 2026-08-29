@@ -22,5 +22,7 @@ public class EmployeeResponse {
     private String lastName;
     private String cardNo;
     private boolean active;
+    private Long workGroupId;
+    private String workGroupName;
     private LocalDateTime createdAt;
 }

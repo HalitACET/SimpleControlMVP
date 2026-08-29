@@ -80,6 +80,61 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    /**
+     * 409 DUPLICATE_SHIFT_NAME
+     */
+    @ExceptionHandler(DuplicateShiftNameException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateShiftName(DuplicateShiftNameException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_SHIFT_NAME");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * 409 SHIFT_IN_USE
+     */
+    @ExceptionHandler(ShiftInUseException.class)
+    public ResponseEntity<Map<String, Object>> handleShiftInUse(ShiftInUseException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "SHIFT_IN_USE");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * 409 DUPLICATE_WORK_GROUP_NAME
+     */
+    @ExceptionHandler(DuplicateWorkGroupNameException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateWorkGroupName(DuplicateWorkGroupNameException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_WORK_GROUP_NAME");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * 409 WORK_GROUP_IN_USE
+     */
+    @ExceptionHandler(WorkGroupInUseException.class)
+    public ResponseEntity<Map<String, Object>> handleWorkGroupInUse(WorkGroupInUseException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "WORK_GROUP_IN_USE");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * 409 DUPLICATE_HOLIDAY_DATE
+     */
+    @ExceptionHandler(DuplicateHolidayDateException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateHolidayDate(DuplicateHolidayDateException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_HOLIDAY_DATE");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     // ─── ResponseStatusException (401, 409, 404 vb.) ─────────────────────────
 
     /**

@@ -160,16 +160,16 @@ public class AdminController {
         return new ResponseEntity<>(csvData, headers, HttpStatus.OK);
     }
 
-    // ─── Shift Endpoints ──────────────────────────────────────────────────────
+    // ─── Shift Endpoints (Legacy - Faz 1) ──────────────────────────────────────────────────────
 
-    @GetMapping("/shifts")
+    @GetMapping("/shifts-legacy")
     public ResponseEntity<List<Shift>> getShifts(
             @RequestHeader("Authorization") String authHeader
     ) {
         return ResponseEntity.ok(adminService.getShifts(authHeader));
     }
 
-    @PostMapping("/shifts")
+    @PostMapping("/shifts-legacy")
     public ResponseEntity<Shift> createShift(
             @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody ShiftRequest request
@@ -177,16 +177,16 @@ public class AdminController {
         return ResponseEntity.ok(adminService.createShift(authHeader, request));
     }
 
-    @PutMapping("/shifts/{id}")
+    @PutMapping("/shifts-legacy/{id}")
     public ResponseEntity<Shift> updateShift(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable("id") Long id,
+            @PathVariable Long id,
             @Valid @RequestBody ShiftRequest request
     ) {
         return ResponseEntity.ok(adminService.updateShift(authHeader, id, request));
     }
 
-    @PutMapping("/shifts/{id}/status")
+    @PutMapping("/shifts-legacy/{id}/status")
     public ResponseEntity<Void> updateShiftStatus(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable("id") Long id,

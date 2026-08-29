@@ -25,7 +25,9 @@ public class EmployeeRequest {
     @Size(max = 75, message = "Soyad en fazla 75 karakter olabilir")
     private String lastName;
 
-    @NotBlank(message = "Kart numarası boş bırakılamaz")
+    @NotBlank(message = "Kart numarası zorunludur")
     @Size(max = 50, message = "Kart numarası en fazla 50 karakter olabilir")
     private String cardNo;
+
+    private Long workGroupId;
 }

@@ -27,6 +27,7 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final com.pdks.backend.repository.WorkGroupRepository workGroupRepository;
 
     // ─── Listeleme ────────────────────────────────────────────────────────────
 
@@ -59,11 +60,18 @@ public class EmployeeService {
         employeeRepository.findByFirmIdAndCardNoAndActiveTrue(firmId, request.getCardNo().trim())
                 .ifPresent(e -> { throw new DuplicateCardNoException(request.getCardNo().trim()); });
 
+        com.pdks.backend.entity.WorkGroup workGroup = null;
+        if (request.getWorkGroupId() != null) {
+            workGroup = workGroupRepository.findByFirmIdAndIdAndActiveTrue(firmId, request.getWorkGroupId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya pasif çalışma grubu ID: " + request.getWorkGroupId()));
+        }
+
         Employee employee = Employee.builder()
                 .firmId(firmId)
                 .firstName(request.getFirstName().trim())
                 .lastName(request.getLastName().trim())
                 .cardNo(request.getCardNo().trim())
+                .workGroup(workGroup)
                 .active(true)
                 .build();
 
@@ -86,10 +94,17 @@ public class EmployeeService {
             employeeRepository.findByFirmIdAndCardNoAndActiveTrue(firmId, newCardNo)
                     .ifPresent(e -> { throw new DuplicateCardNoException(newCardNo); });
         }
+        
+        com.pdks.backend.entity.WorkGroup workGroup = null;
+        if (request.getWorkGroupId() != null) {
+            workGroup = workGroupRepository.findByFirmIdAndIdAndActiveTrue(firmId, request.getWorkGroupId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya pasif çalışma grubu ID: " + request.getWorkGroupId()));
+        }
 
         employee.setFirstName(request.getFirstName().trim());
         employee.setLastName(request.getLastName().trim());
         employee.setCardNo(newCardNo);
+        employee.setWorkGroup(workGroup);
 
         return toResponse(employeeRepository.save(employee));
     }
@@ -129,15 +144,16 @@ public class EmployeeService {
         return user.getFirmId();
     }
 
-    private EmployeeResponse toResponse(Employee e) {
+    private EmployeeResponse toResponse(Employee emp) {
         return EmployeeResponse.builder()
-                .id(e.getId())
-                .firmId(e.getFirmId())
-                .firstName(e.getFirstName())
-                .lastName(e.getLastName())
-                .cardNo(e.getCardNo())
-                .active(e.isActive())
-                .createdAt(e.getCreatedAt())
+                .id(emp.getId())
+                .firstName(emp.getFirstName())
+                .lastName(emp.getLastName())
+                .cardNo(emp.getCardNo())
+                .active(emp.isActive())
+                .workGroupId(emp.getWorkGroup() != null ? emp.getWorkGroup().getId() : null)
+                .workGroupName(emp.getWorkGroup() != null ? emp.getWorkGroup().getName() : null)
+                .createdAt(emp.getCreatedAt())
                 .build();
     }
 }
