@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
+import { handleApiError } from '../utils/errorHandler';
+
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,8 +26,8 @@ export default function Login() {
         localStorage.setItem('token', token);
         navigate('/employees');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+    } catch (err: unknown) {
+      setError(handleApiError(err));
     }
   };
 

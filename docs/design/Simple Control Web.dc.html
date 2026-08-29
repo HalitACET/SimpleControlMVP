@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;background:#F2F0EB;font-family:'Barlow',system-ui,sans-serif;color:#1C1C1E;-webkit-font-smoothing:antialiased}
+  a{color:#F5B301;text-decoration:none}
+  a:hover{color:#DDA000;text-decoration:underline}
+  input,select,button{font-family:inherit}
+  table{border-collapse:collapse}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#D5D0C4;border-radius:8px;border:3px solid #fff}
+  @keyframes shimmer{0%{background-position:-320px 0}100%{background-position:320px 0}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes slideIn{from{transform:translateX(24px);opacity:.4}to{transform:translateX(0);opacity:1}}
+  @keyframes toastIn{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;overflow:hidden;background:#F2F0EB">
+
+  <aside style="width:{{ sidebarW }}px;flex:0 0 auto;background:#26262A;border-right:1px solid #34343A;display:flex;flex-direction:column;transition:width .16s ease">
+    <div style="height:56px;flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #34343A">
+      <div style="width:24px;height:24px;flex:0 0 auto;border-radius:7px;background:#F5B301;display:flex;align-items:center;justify-content:center;color:#1C1C1E;font-size:12px;font-weight:700;letter-spacing:-.02em">SC</div>
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+        <div style="min-width:0">
+          <div style="font-size:13.5px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;color:#FFFFFF">Simple Control</div>
+          <div style="font-size:11px;color:#A0A0A8;white-space:nowrap;margin-top:-1px">PDKS Yönetim</div>
+        </div>
+      </sc-if>
+    </div>
+
+    <nav style="flex:1 1 auto;overflow-y:auto;padding:12px 8px">
+      <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+        <div style="margin-bottom:14px">
+          <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+            <div style="padding:0 10px 6px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#A0A0A8">{{ g.label }}</div>
+          </sc-if>
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+            <div onClick="{{ it.go }}" title="{{ it.label }}" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;margin-bottom:1px;border-radius:6px;cursor:pointer;font-size:13.5px;color:{{ it.fg }};background:{{ it.bg }};font-weight:{{ it.fw }}" style-hover="background:rgba(255,255,255,0.05)">
+              <span style="width:2px;height:16px;flex:0 0 auto;border-radius:1px;background:{{ it.dot }}"></span>
+              <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.label }}</span></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </nav>
+
+    <div style="flex:0 0 auto;padding:8px;border-top:1px solid #34343A">
+      <div onClick="{{ toggleSidebar }}" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:6px;cursor:pointer;font-size:12.5px;color:#A0A0A8" style-hover="background:rgba(255,255,255,0.05)">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:13px">{{ collapseIcon }}</span>
+        <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><span style="white-space:nowrap">Menüyü daralt</span></sc-if>
+      </div>
+    </div>
+  </aside>
+
+  <div style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+    <header style="height:56px;flex:0 0 auto;background:#26262A;border-bottom:1px solid #34343A;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+      <div>
+        <div style="font-size:11px;color:#A0A0A8;letter-spacing:.01em;margin-bottom:1px">{{ breadcrumb }}</div>
+        <h1 style="margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;color:#FFFFFF">{{ screenTitle }}</h1>
+      </div>
+      <div style="position:relative">
+        <div onClick="{{ toggleUserMenu }}" style="display:flex;align-items:center;gap:9px;height:34px;padding:0 10px;border-radius:7px;cursor:pointer;border:1px solid transparent" style-hover="background:rgba(255,255,255,0.06);border-color:#3A3A40">
+          <div style="width:26px;height:26px;border-radius:50%;background:#F5B301;color:#1C1C1E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">AY</div>
+          <div style="font-size:13px;font-weight:500;color:#FFFFFF">Ayşe Yıldırım</div>
+          <span style="font-size:9px;color:#A0A0A8">▼</span>
+        </div>
+        <sc-if value="{{ userMenu }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:42px;right:0;width:200px;background:#fff;border:1px solid #E5E1D8;border-radius:8px;box-shadow:0 8px 24px rgba(28,28,30,.10);padding:5px;z-index:40">
+            <div style="padding:8px 10px 9px;border-bottom:1px solid #F2F0EB;margin-bottom:4px">
+              <div style="font-size:12.5px;font-weight:600">Ayşe Yıldırım</div>
+              <div style="font-size:11.5px;color:#8B8B92">İK Yöneticisi</div>
+            </div>
+            <div style="padding:7px 10px;border-radius:5px;font-size:13px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">Hesap ayarları</div>
+            <div style="padding:7px 10px;border-radius:5px;font-size:13px;color:#D9483B;cursor:pointer" style-hover="background:#FBE9E7">Çıkış yap</div>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <main style="flex:1 1 auto;overflow-y:auto;padding:24px">
+
+      <!-- PERSONEL LİSTESİ -->
+      <sc-if value="{{ isPersonel }}" hint-placeholder-val="{{ true }}">
+        <div style="max-width:1320px;margin:0 auto">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <div style="position:relative;width:280px">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#B0ABA0">⌕</span>
+              <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Ad, soyad veya kart numarası ara" style="width:100%;height:34px;padding:0 10px 0 26px;border:1px solid #D5D0C4;border-radius:7px;font-size:13px;color:#1C1C1E;background:#fff;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+            </div>
+            <select value="{{ fGrup }}" onChange="{{ onGrup }}" style="height:34px;padding:0 10px;border:1px solid #D5D0C4;border-radius:7px;font-size:13px;background:#fff;color:#3A3A3E;outline:none;min-width:170px" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+              <option value="">Tüm çalışma grupları</option>
+              <option value="Merkez Ofis">Merkez Ofis</option>
+              <option value="Üretim — Vardiyalı">Üretim — Vardiyalı</option>
+              <option value="Saha Ekibi">Saha Ekibi</option>
+              <option value="Yönetim">Yönetim</option>
+            </select>
+            <select value="{{ fDurum }}" onChange="{{ onDurum }}" style="height:34px;padding:0 10px;border:1px solid #D5D0C4;border-radius:7px;font-size:13px;background:#fff;color:#3A3A3E;outline:none;min-width:130px" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+              <option value="">Tüm durumlar</option>
+              <option value="aktif">Aktif</option>
+              <option value="pasif">Pasif</option>
+            </select>
+            <div style="flex:1 1 auto"></div>
+            <button onClick="{{ newPersonel }}" style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#F5B301;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;box-shadow:0 1px 2px rgba(28,28,30,.10)" style-hover="background:#DDA000">＋ Yeni Personel</button>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;overflow:hidden">
+            <table style="width:100%;font-size:13.5px">
+              <thead>
+                <tr style="background:#F2F0EB;border-bottom:1px solid #E5E1D8">
+                  <th onClick="{{ sortAd }}" style="text-align:left;padding:0 16px;height:38px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;cursor:pointer;white-space:nowrap">Ad Soyad <span style="color:#F5B301">{{ sortArrow }}</span></th>
+                  <th style="text-align:left;padding:0 16px;height:38px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:150px">Kart Numarası</th>
+                  <th style="text-align:left;padding:0 16px;height:38px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:220px">Çalışma Grubu</th>
+                  <th style="text-align:left;padding:0 16px;height:38px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:110px">Durum</th>
+                  <th style="text-align:right;padding:0 16px;height:38px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:120px">İşlem</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ personelRows }}" as="p" hint-placeholder-count="8">
+                  <tr onClick="{{ p.open }}" style="border-bottom:1px solid #EFEDE6;cursor:pointer;height:{{ rowH }}px;background:{{ p.bg }}" style-hover="background:#F7F5EF">
+                    <td style="padding:0 16px">
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <div style="width:26px;height:26px;flex:0 0 auto;border-radius:50%;background:#F2F0EB;color:#6B6B70;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center">{{ p.ini }}</div>
+                        <span style="font-weight:500;color:#1C1C1E">{{ p.tam }}</span>
+                      </div>
+                    </td>
+                    <td style="padding:0 16px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#3A3A3E">{{ p.kart }}</td>
+                    <td style="padding:0 16px;color:#3A3A3E">{{ p.grup }}</td>
+                    <td style="padding:0 16px">
+                      <span style="display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 8px;border-radius:999px;font-size:11.5px;font-weight:600;color:{{ p.sFg }};background:{{ p.sBg }}">
+                        <span style="width:5px;height:5px;border-radius:50%;background:{{ p.sFg }}"></span>{{ p.sLabel }}
+                      </span>
+                    </td>
+                    <td style="padding:0 16px;text-align:right">
+                      <div style="display:inline-flex;gap:4px">
+                        <button onClick="{{ p.open }}" style="height:26px;padding:0 9px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB;border-color:#C4BFB3">Düzenle</button>
+                        <button style="height:26px;width:26px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12px;color:#8B8B92;cursor:pointer" style-hover="background:#FBE9E7;border-color:#F0C0BA;color:#D9483B">⋯</button>
+                      </div>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <sc-if value="{{ personelEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:56px 24px;text-align:center">
+                <div style="width:40px;height:40px;margin:0 auto 14px;border-radius:10px;border:1px dashed #D5D0C4;background:#FAF9F6"></div>
+                <div style="font-size:14.5px;font-weight:600;margin-bottom:5px">Kayıt bulunamadı</div>
+                <div style="font-size:13px;color:#8B8B92;max-width:340px;margin:0 auto 16px;line-height:1.5">Arama ve filtre kriterlerinize uyan personel yok. Filtreleri temizleyip yeniden deneyin.</div>
+                <button onClick="{{ clearFilters }}" style="height:32px;padding:0 13px;border:1px solid #D5D0C4;background:#fff;border-radius:7px;font-size:13px;font-weight:500;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">Filtreleri temizle</button>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-top:1px solid #E5E1D8;background:#FAF9F6">
+              <div style="font-size:12.5px;color:#6B6B70">{{ pageInfo }}</div>
+              <div style="display:flex;align-items:center;gap:4px">
+                <button style="height:28px;padding:0 10px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#B0ABA0;cursor:not-allowed">Önceki</button>
+                <button style="height:28px;min-width:28px;border:1px solid #F5B301;background:#F5B301;color:#1C1C1E;border-radius:6px;font-size:12.5px;font-weight:700;cursor:pointer">1</button>
+                <button style="height:28px;min-width:28px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">2</button>
+                <button style="height:28px;min-width:28px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">3</button>
+                <button style="height:28px;padding:0 10px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">Sonraki</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- GÜNLÜK RAPOR -->
+      <sc-if value="{{ isRapor }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1440px;margin:0 auto">
+          <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;margin-bottom:5px">Tarih Aralığı</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input value="01.08.2026" style="height:34px;width:120px;padding:0 10px;border:1px solid #D5D0C4;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#1C1C1E;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+                <span style="color:#B0ABA0;font-size:12px">→</span>
+                <input value="07.08.2026" style="height:34px;width:120px;padding:0 10px;border:1px solid #D5D0C4;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#1C1C1E;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;margin-bottom:5px">Personel</div>
+              <select style="height:34px;min-width:180px;padding:0 10px;border:1px solid #D5D0C4;border-radius:7px;font-size:13px;background:#fff;color:#3A3A3E;outline:none">
+                <option>Tüm personel</option>
+                <option>Mehmet Arslan</option>
+                <option>Elif Kaya</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;margin-bottom:5px">Çalışma Grubu</div>
+              <select style="height:34px;min-width:180px;padding:0 10px;border:1px solid #D5D0C4;border-radius:7px;font-size:13px;background:#fff;color:#3A3A3E;outline:none">
+                <option>Tüm gruplar</option>
+                <option>Merkez Ofis</option>
+                <option>Üretim — Vardiyalı</option>
+              </select>
+            </div>
+            <div style="flex:1 1 auto"></div>
+            <button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#F5B301;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer" style-hover="background:#DDA000">Raporu Getir</button>
+            <button style="height:34px;padding:0 13px;border:1px solid #D5D0C4;background:#fff;border-radius:7px;font-size:13px;font-weight:500;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">Excel'e Aktar</button>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:14px 16px">
+              <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8B8B92;margin-bottom:7px">Çalışılan Gün</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-.02em">128</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:14px 16px">
+              <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8B8B92;margin-bottom:7px">Devamsız Gün</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-.02em;color:#D9483B">6</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:14px 16px">
+              <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8B8B92;margin-bottom:7px">Geç Gelinen Gün</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-.02em;color:#D4760A">14</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:14px 16px">
+              <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#8B8B92;margin-bottom:7px">Toplam Eksik Süre</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:500;letter-spacing:-.02em">18s 40dk</div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #E5E1D8">
+              <div style="font-size:14px;font-weight:600">Günlük Hareket Dökümü</div>
+              <div style="display:flex;align-items:center;gap:12px;font-size:11.5px;color:#8B8B92">
+                <span style="display:inline-flex;align-items:center;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;padding:2px 4px;border-radius:4px;background:#F2F0EB;color:#6B6B70">TRM</span>Terminal</span>
+                <span style="display:inline-flex;align-items:center;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;padding:2px 4px;border-radius:4px;background:#FFF8E1;color:#F5B301">MOB</span>Mobil</span>
+                <span style="display:inline-flex;align-items:center;gap:5px"><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;padding:2px 4px;border-radius:4px;background:#FBEEDC;color:#D4760A">MAN</span>Manuel</span>
+              </div>
+            </div>
+            <table style="width:100%;font-size:13px">
+              <thead>
+                <tr style="background:#F2F0EB;border-bottom:1px solid #E5E1D8">
+                  <th style="text-align:left;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:100px">Tarih</th>
+                  <th style="text-align:left;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70">Personel</th>
+                  <th style="text-align:left;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:150px">Vardiya</th>
+                  <th style="text-align:left;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:96px">Giriş</th>
+                  <th style="text-align:left;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:96px">Çıkış</th>
+                  <th style="text-align:left;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:126px">Durum</th>
+                  <th style="text-align:right;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:104px">Geç Geliş</th>
+                  <th style="text-align:right;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:104px">Erken Çıkış</th>
+                  <th style="text-align:right;padding:0 14px;height:36px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;width:112px">Toplam Eksik</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ raporRows }}" as="r" hint-placeholder-count="10">
+                  <tr style="border-bottom:1px solid #EFEDE6;height:{{ rowH }}px;background:{{ r.bg }}" style-hover="background:#F7F5EF">
+                    <td style="padding:0 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#6B6B70">{{ r.tarih }}</td>
+                    <td style="padding:0 14px;font-weight:500">{{ r.personel }}</td>
+                    <td style="padding:0 14px;color:#3A3A3E">{{ r.vardiya }}</td>
+                    <td style="padding:0 14px">
+                      <span style="display:inline-flex;align-items:center;gap:6px">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:{{ r.girisFg }}">{{ r.giris }}</span>
+                        <sc-if value="{{ r.showKaynak }}" hint-placeholder-val="{{ true }}"><span style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;padding:1px 3px;border-radius:3px;background:{{ r.kBg }};color:{{ r.kFg }}">{{ r.kaynak }}</span></sc-if>
+                      </span>
+                    </td>
+                    <td style="padding:0 14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:{{ r.cikisFg }}">{{ r.cikis }}</td>
+                    <td style="padding:0 14px">
+                      <span style="display:inline-block;height:21px;line-height:21px;padding:0 8px;border-radius:999px;font-size:11.5px;font-weight:600;color:{{ r.dFg }};background:{{ r.dBg }};white-space:nowrap">{{ r.durum }}</span>
+                    </td>
+                    <td style="padding:0 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:{{ r.gecFg }}">{{ r.gec }}</td>
+                    <td style="padding:0 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:{{ r.erkenFg }}">{{ r.erken }}</td>
+                    <td style="padding:0 14px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:500;color:{{ r.eksikFg }}">{{ r.eksik }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-top:1px solid #E5E1D8;background:#FAF9F6">
+              <div style="font-size:12.5px;color:#6B6B70">Toplam 134 kayıt — 1-12 arası gösteriliyor</div>
+              <div style="display:flex;align-items:center;gap:4px">
+                <button style="height:28px;padding:0 10px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#B0ABA0;cursor:not-allowed">Önceki</button>
+                <button style="height:28px;min-width:28px;border:1px solid #F5B301;background:#F5B301;color:#1C1C1E;border-radius:6px;font-size:12.5px;font-weight:700;cursor:pointer">1</button>
+                <button style="height:28px;min-width:28px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">2</button>
+                <button style="height:28px;padding:0 10px;border:1px solid #D5D0C4;background:#fff;border-radius:6px;font-size:12.5px;color:#3A3A3E;cursor:pointer" style-hover="background:#F2F0EB">Sonraki</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- TASARIM SİSTEMİ -->
+      <sc-if value="{{ isSistem }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px">
+
+          <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">Renk Paleti</div>
+            <div style="font-size:12.5px;color:#8B8B92;margin-bottom:16px">Nötr gri skalası, aksan rengi ve semantik renkler — her biri açık zemin varyantıyla.</div>
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;margin-bottom:8px">Nötr</div>
+            <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:18px">
+              <div><div style="height:44px;border-radius:6px;background:#FAF9F6;border:1px solid #E5E1D8"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">50</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#F2F0EB"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">100</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#E5E1D8"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">200</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#D5D0C4"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">300</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#B0ABA0"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">400</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#8B8B92"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">500</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#6B6B70"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">600</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#3A3A3E"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">700</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#26262A"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">800</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#1C1C1E"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">900</div></div>
+            </div>
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;margin-bottom:8px">Aksan</div>
+            <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:18px">
+              <div><div style="height:44px;border-radius:6px;background:#FFF8E1"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">50</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#FDEFC4"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">100</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#FBDE8E"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">200</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#F8C94A"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">300</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#E5A800"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">400</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#F5B301"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#F5B301;font-weight:500;margin-top:5px">500 ★</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#DDA000"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">600</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#C08A00"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">700</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#A47400"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">800</div></div>
+              <div><div style="height:44px;border-radius:6px;background:#7A5600"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:5px">900</div></div>
+            </div>
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70;margin-bottom:8px">Semantik</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+              <div style="border:1px solid #E5E1D8;border-radius:8px;overflow:hidden">
+                <div style="height:38px;background:#2E9E5B"></div>
+                <div style="height:30px;background:#E8F6ED"></div>
+                <div style="padding:8px 10px"><div style="font-size:12.5px;font-weight:600">Başarı</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8B8B92">#2E9E5B / #E8F6ED</div></div>
+              </div>
+              <div style="border:1px solid #E5E1D8;border-radius:8px;overflow:hidden">
+                <div style="height:38px;background:#D4760A"></div>
+                <div style="height:30px;background:#FBEEDC"></div>
+                <div style="padding:8px 10px"><div style="font-size:12.5px;font-weight:600">Uyarı</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8B8B92">#D4760A / #FBEEDC</div></div>
+              </div>
+              <div style="border:1px solid #E5E1D8;border-radius:8px;overflow:hidden">
+                <div style="height:38px;background:#D9483B"></div>
+                <div style="height:30px;background:#FBE9E7"></div>
+                <div style="padding:8px 10px"><div style="font-size:12.5px;font-weight:600">Hata</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8B8B92">#D9483B / #FBE9E7</div></div>
+              </div>
+              <div style="border:1px solid #E5E1D8;border-radius:8px;overflow:hidden">
+                <div style="height:38px;background:#2B7EC1"></div>
+                <div style="height:30px;background:#E7F1FA"></div>
+                <div style="padding:8px 10px"><div style="font-size:12.5px;font-weight:600">Bilgi</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8B8B92">#2B7EC1 / #E7F1FA</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.35fr 1fr;gap:16px">
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+              <div style="font-size:15px;font-weight:600;margin-bottom:16px">Tipografi Ölçeği</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">22 / 600 / -.02em</span><span style="font-size:22px;font-weight:600;letter-spacing:-.02em">Sayfa Başlığı</span></div>
+                <div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">15 / 600</span><span style="font-size:15px;font-weight:600">Bölüm Başlığı</span></div>
+                <div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">11 / 600 / .07em</span><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70">Tablo Başlığı</span></div>
+                <div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">13.5 / 400</span><span style="font-size:13.5px">Gövde metni — tabloda ve panelde kullanılan temel boyut.</span></div>
+                <div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">12.5 / 400</span><span style="font-size:12.5px;color:#8B8B92">Yardımcı metin — açıklama ve ikincil bilgi.</span></div>
+                <div style="display:flex;align-items:baseline;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">10.5 / 600 / .08em</span><span style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6B6B70">Etiket</span></div>
+                <div style="display:flex;align-items:baseline;gap:16px;padding-top:12px;border-top:1px solid #EFEDE6"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#B0ABA0;width:104px;flex:0 0 auto">mono 12.5</span><span style="font-family:'JetBrains Mono',monospace;font-size:12.5px">08:32 · 1s 25dk · 4821</span></div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+              <div style="font-size:15px;font-weight:600;margin-bottom:16px">Boşluk ve Köşe Yarıçapı</div>
+              <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:20px">
+                <div><div style="width:4px;height:4px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">4</div></div>
+                <div><div style="width:8px;height:8px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">8</div></div>
+                <div><div style="width:12px;height:12px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">12</div></div>
+                <div><div style="width:16px;height:16px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">16</div></div>
+                <div><div style="width:24px;height:24px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">24</div></div>
+                <div><div style="width:32px;height:32px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">32</div></div>
+                <div><div style="width:48px;height:48px;background:#E5A800;border-radius:1px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">48</div></div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <div><div style="width:52px;height:40px;background:#F2F0EB;border:1px solid #D5D0C4;border-radius:5px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">5 · rozet</div></div>
+                <div><div style="width:52px;height:40px;background:#F2F0EB;border:1px solid #D5D0C4;border-radius:7px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">7 · alan</div></div>
+                <div><div style="width:52px;height:40px;background:#F2F0EB;border:1px solid #D5D0C4;border-radius:10px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">10 · kart</div></div>
+                <div><div style="width:52px;height:40px;background:#F2F0EB;border:1px solid #D5D0C4;border-radius:999px"></div><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8B8B92;margin-top:6px">tam</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:16px">Butonlar</div>
+            <div style="display:grid;grid-template-columns:100px repeat(4,1fr);gap:12px;align-items:center">
+              <div></div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70">Primary</div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70">Secondary</div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70">Ghost</div>
+              <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6B6B70">Danger</div>
+
+              <div style="font-size:12px;color:#8B8B92">Normal</div>
+              <div><button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#F5B301;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Kaydet</button></div>
+              <div><button style="height:34px;padding:0 14px;border:1px solid #D5D0C4;border-radius:7px;background:#fff;color:#3A3A3E;font-size:13px;font-weight:500;cursor:pointer">İptal</button></div>
+              <div><button style="height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#3A3A3E;font-size:13px;font-weight:500;cursor:pointer">Temizle</button></div>
+              <div><button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#D9483B;color:#fff;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Sil</button></div>
+
+              <div style="font-size:12px;color:#8B8B92">Hover</div>
+              <div><button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#DDA000;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Kaydet</button></div>
+              <div><button style="height:34px;padding:0 14px;border:1px solid #C4BFB3;border-radius:7px;background:#F2F0EB;color:#3A3A3E;font-size:13px;font-weight:500;cursor:pointer">İptal</button></div>
+              <div><button style="height:34px;padding:0 12px;border:none;border-radius:7px;background:#F2F0EB;color:#1C1C1E;font-size:13px;font-weight:500;cursor:pointer">Temizle</button></div>
+              <div><button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#B93A2E;color:#fff;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">Sil</button></div>
+
+              <div style="font-size:12px;color:#8B8B92">Disabled</div>
+              <div><button disabled style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#FDEFC4;color:#C2A44B;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:not-allowed">Kaydet</button></div>
+              <div><button disabled style="height:34px;padding:0 14px;border:1px solid #E5E1D8;border-radius:7px;background:#FAF9F6;color:#B0ABA0;font-size:13px;font-weight:500;cursor:not-allowed">İptal</button></div>
+              <div><button disabled style="height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#C4BFB3;font-size:13px;font-weight:500;cursor:not-allowed">Temizle</button></div>
+              <div><button disabled style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#F7DCD8;color:#E39A92;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:not-allowed">Sil</button></div>
+
+              <div style="font-size:12px;color:#8B8B92">Loading</div>
+              <div><button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#F5B301;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:progress;display:inline-flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:50%;border:2px solid rgba(28,28,30,.28);border-top-color:#1C1C1E;animation:spin .7s linear infinite;display:inline-block"></span>Kaydediliyor</button></div>
+              <div><button style="height:34px;padding:0 14px;border:1px solid #D5D0C4;border-radius:7px;background:#fff;color:#8B8B92;font-size:13px;font-weight:500;cursor:progress;display:inline-flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:50%;border:2px solid #E5E1D8;border-top-color:#8B8B92;animation:spin .7s linear infinite;display:inline-block"></span>Getiriliyor</button></div>
+              <div></div>
+              <div></div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+              <div style="font-size:15px;font-weight:600;margin-bottom:16px">Form Elemanları</div>
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div>
+                  <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Ad Soyad</label>
+                  <input value="Mehmet Arslan" style="width:100%;height:36px;padding:0 11px;border:1px solid #D5D0C4;border-radius:7px;font-size:13.5px;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+                  <div style="height:16px;font-size:11.5px;color:#8B8B92;margin-top:4px">Kimlikteki adı yazın.</div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Kart Numarası — odakta</label>
+                  <input value="4821" style="width:100%;height:36px;padding:0 11px;border:1px solid #E5A800;border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+                  <div style="height:16px;margin-top:4px"></div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Çalışma Grubu — hatalı</label>
+                  <select style="width:100%;height:36px;padding:0 11px;border:1px solid #D9483B;border-radius:7px;font-size:13.5px;background:#fff;color:#8B8B92;outline:none;box-shadow:0 0 0 3px rgba(217,72,59,.15)"><option>Seçim yapılmadı</option></select>
+                  <div style="height:16px;font-size:11.5px;color:#D9483B;margin-top:4px">Çalışma grubu zorunludur.</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div>
+                    <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Tarih</label>
+                    <div style="display:flex;align-items:center;height:36px;padding:0 11px;border:1px solid #D5D0C4;border-radius:7px;justify-content:space-between"><span style="font-family:'JetBrains Mono',monospace;font-size:13px">07.08.2026</span><span style="font-size:11px;color:#8B8B92">▤</span></div>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Saat</label>
+                    <div style="display:flex;align-items:center;height:36px;padding:0 11px;border:1px solid #D5D0C4;border-radius:7px;justify-content:space-between"><span style="font-family:'JetBrains Mono',monospace;font-size:13px">08:30</span><span style="font-size:11px;color:#8B8B92">◔</span></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:20px;padding-top:2px">
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:34px;height:20px;border-radius:999px;background:#F5B301;padding:2px;display:flex;justify-content:flex-end"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div><span style="font-size:13px;color:#3A3A3E">Aktif</span></div>
+                  <div style="display:flex;align-items:center;gap:9px"><div style="width:34px;height:20px;border-radius:999px;background:#D5D0C4;padding:2px;display:flex"><div style="width:16px;height:16px;border-radius:50%;background:#fff"></div></div><span style="font-size:13px;color:#8B8B92">Pasif</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+                <div style="font-size:15px;font-weight:600;margin-bottom:14px">Rozetler</div>
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                  <span style="height:22px;line-height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#2E9E5B;background:#E8F6ED">Tam</span>
+                  <span style="height:22px;line-height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#D4760A;background:#FBEEDC">Geç Geldi</span>
+                  <span style="height:22px;line-height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#D4760A;background:#FBEEDC">Erken Çıktı</span>
+                  <span style="height:22px;line-height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#D9483B;background:#FBE9E7">Eksik Çıkış</span>
+                  <span style="height:22px;line-height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#6B6B70;background:#F2F0EB">Devamsız</span>
+                  <span style="height:22px;line-height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#2B7EC1;background:#E7F1FA">Tatil</span>
+                  <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#2E9E5B;background:#E8F6ED"><span style="width:5px;height:5px;border-radius:50%;background:#2E9E5B"></span>Aktif</span>
+                  <span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;color:#6B6B70;background:#F2F0EB"><span style="width:5px;height:5px;border-radius:50%;background:#8B8B92"></span>Pasif</span>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+                <div style="font-size:15px;font-weight:600;margin-bottom:14px">Bildirim</div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:#fff;border:1px solid #E5E1D8;border-left:3px solid #2E9E5B;border-radius:8px;box-shadow:0 4px 14px rgba(28,28,30,.07)">
+                    <div style="flex:1 1 auto"><div style="font-size:13px;font-weight:600">Personel kaydedildi</div><div style="font-size:12px;color:#8B8B92;margin-top:1px">Mehmet Arslan başarıyla güncellendi.</div></div>
+                    <span style="font-size:13px;color:#B0ABA0;cursor:pointer">✕</span>
+                  </div>
+                  <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:#fff;border:1px solid #E5E1D8;border-left:3px solid #D9483B;border-radius:8px;box-shadow:0 4px 14px rgba(28,28,30,.07)">
+                    <div style="flex:1 1 auto"><div style="font-size:13px;font-weight:600">Kayıt yapılamadı</div><div style="font-size:12px;color:#8B8B92;margin-top:1px">Kart numarası başka bir personelde kullanılıyor.</div></div>
+                    <span style="font-size:13px;color:#B0ABA0;cursor:pointer">✕</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+                <div style="font-size:15px;font-weight:600;margin-bottom:14px">Yükleniyor · Skeleton</div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <div style="height:12px;width:70%;border-radius:4px;background:linear-gradient(90deg,#F2F0EB 0%,#E5E1D8 40%,#F2F0EB 80%);background-size:320px 100%;animation:shimmer 1.3s linear infinite"></div>
+                  <div style="height:12px;width:92%;border-radius:4px;background:linear-gradient(90deg,#F2F0EB 0%,#E5E1D8 40%,#F2F0EB 80%);background-size:320px 100%;animation:shimmer 1.3s linear infinite"></div>
+                  <div style="height:12px;width:54%;border-radius:4px;background:linear-gradient(90deg,#F2F0EB 0%,#E5E1D8 40%,#F2F0EB 80%);background-size:320px 100%;animation:shimmer 1.3s linear infinite"></div>
+                  <div style="height:12px;width:80%;border-radius:4px;background:linear-gradient(90deg,#F2F0EB 0%,#E5E1D8 40%,#F2F0EB 80%);background-size:320px 100%;animation:shimmer 1.3s linear infinite"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:20px 22px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:3px">Boş Durum</div>
+            <div style="font-size:12.5px;color:#8B8B92;margin-bottom:14px">Kayıt hiç yokken tek birincil aksiyon; filtre sonucu boşken filtre temizleme.</div>
+            <div style="border:1px solid #E5E1D8;border-radius:8px;padding:48px 24px;text-align:center;background:#FAF9F6">
+              <div style="width:40px;height:40px;margin:0 auto 14px;border-radius:10px;border:1px dashed #D5D0C4;background:#fff"></div>
+              <div style="font-size:14.5px;font-weight:600;margin-bottom:5px">Henüz personel eklenmedi</div>
+              <div style="font-size:13px;color:#8B8B92;max-width:360px;margin:0 auto 16px;line-height:1.5">Personel ekledikçe giriş-çıkış hareketleri otomatik olarak eşleşir ve raporlarda görünür.</div>
+              <button style="height:34px;padding:0 14px;border:none;border-radius:7px;background:#F5B301;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer">＋ Yeni Personel</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- DİĞER MODÜLLER -->
+      <sc-if value="{{ isStub }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1320px;margin:0 auto;background:#fff;border:1px solid #E5E1D8;border-radius:10px;padding:80px 24px;text-align:center">
+          <div style="width:40px;height:40px;margin:0 auto 14px;border-radius:10px;border:1px dashed #D5D0C4;background:#FAF9F6"></div>
+          <div style="font-size:14.5px;font-weight:600;margin-bottom:5px">{{ screenTitle }} modülü</div>
+          <div style="font-size:13px;color:#8B8B92;max-width:380px;margin:0 auto;line-height:1.5">Bu modül aynı kalıbı kullanır: üstte arama ve filtre çubuğu, ortada tablo, satıra tıklandığında sağdan açılan detay paneli.</div>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+
+  <!-- DRAWER -->
+  <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(28,28,30,.28);z-index:50" onClick="{{ closeDrawer }}"></div>
+  </sc-if>
+  <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;top:0;right:0;bottom:0;width:480px;background:#fff;border-left:1px solid #E5E1D8;box-shadow:-12px 0 32px rgba(28,28,30,.12);z-index:51;display:flex;flex-direction:column;animation:slideIn .18s ease">
+      <div style="flex:0 0 auto;padding:16px 20px;background:#26262A;border-bottom:1px solid #34343A;display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:16px;font-weight:600;letter-spacing:-.01em;color:#FFFFFF">{{ drawerTitle }}</div>
+          <div style="font-size:12px;color:#A0A0A8;margin-top:2px">{{ drawerSub }}</div>
+        </div>
+        <div onClick="{{ closeDrawer }}" style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#A0A0A8;font-size:13px" style-hover="background:rgba(255,255,255,0.08);color:#FFFFFF">✕</div>
+      </div>
+
+      <div style="flex:1 1 auto;overflow-y:auto;padding:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Ad</label>
+            <input value="{{ fAd }}" onChange="{{ onAd }}" placeholder="Örn. Mehmet" style="width:100%;height:36px;padding:0 11px;border:1px solid {{ eAdBorder }};border-radius:7px;font-size:13.5px;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+            <div style="min-height:16px;font-size:11.5px;color:#D9483B;margin-top:4px">{{ eAd }}</div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Soyad</label>
+            <input value="{{ fSoyad }}" onChange="{{ onSoyad }}" placeholder="Örn. Arslan" style="width:100%;height:36px;padding:0 11px;border:1px solid {{ eSoyadBorder }};border-radius:7px;font-size:13.5px;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+            <div style="min-height:16px;font-size:11.5px;color:#D9483B;margin-top:4px">{{ eSoyad }}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Kart Numarası</label>
+          <input value="{{ fKart }}" onChange="{{ onKart }}" placeholder="Örn. 4821" style="width:100%;height:36px;padding:0 11px;border:1px solid {{ eKartBorder }};border-radius:7px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+          <div style="min-height:16px;font-size:11.5px;color:#D9483B;margin-top:4px">{{ eKart }}</div>
+          <div style="font-size:11.5px;color:#8B8B92">Terminalde okutulan kartın üzerindeki numara.</div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:12.5px;font-weight:600;color:#3A3A3E;margin-bottom:6px">Çalışma Grubu</label>
+          <select value="{{ fGrupForm }}" onChange="{{ onGrupForm }}" style="width:100%;height:36px;padding:0 11px;border:1px solid {{ eGrupBorder }};border-radius:7px;font-size:13.5px;background:#fff;color:#1C1C1E;outline:none" style-focus="border-color:#E5A800;box-shadow:0 0 0 3px rgba(245,179,1,.28)">
+            <option value="">Seçim yapılmadı</option>
+            <option value="Merkez Ofis">Merkez Ofis</option>
+            <option value="Üretim — Vardiyalı">Üretim — Vardiyalı</option>
+            <option value="Saha Ekibi">Saha Ekibi</option>
+            <option value="Yönetim">Yönetim</option>
+          </select>
+          <div style="min-height:16px;font-size:11.5px;color:#D9483B;margin-top:4px">{{ eGrup }}</div>
+          <sc-if value="{{ grupBos }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12px;color:#6B6B70">Uygun grup yok mu? <a href="#tanimlar">Yeni grup tanımla</a></div>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid #E5E1D8;border-radius:8px;background:#FAF9F6">
+          <div>
+            <div style="font-size:13px;font-weight:600">Personel aktif</div>
+            <div style="font-size:11.5px;color:#8B8B92;margin-top:1px">Pasif personel raporlarda görünmez.</div>
+          </div>
+          <div onClick="{{ toggleAktif }}" style="width:34px;height:20px;flex:0 0 auto;border-radius:999px;background:{{ aktifBg }};padding:2px;display:flex;justify-content:{{ aktifJustify }};cursor:pointer;transition:background .15s"><div style="width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(28,28,30,.2)"></div></div>
+        </div>
+
+        <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:18px;padding-top:16px;border-top:1px solid #EFEDE6">
+            <div style="font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6B6B70;margin-bottom:9px">Kayıt Bilgisi</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12.5px">
+              <div><span style="color:#8B8B92">Oluşturma</span><div style="font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:2px">12.03.2024 · 09:14</div></div>
+              <div><span style="color:#8B8B92">Son hareket</span><div style="font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:2px">07.08.2026 · 08:32</div></div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="flex:0 0 auto;padding:12px 20px;border-top:1px solid #E5E1D8;background:#FAF9F6;display:flex;align-items:center;justify-content:space-between">
+        <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}">
+          <button style="height:34px;padding:0 12px;border:none;border-radius:7px;background:transparent;color:#D9483B;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:#FBE9E7">Personeli sil</button>
+        </sc-if>
+        <div style="flex:1 1 auto"></div>
+        <div style="display:flex;gap:8px">
+          <button onClick="{{ closeDrawer }}" style="height:34px;padding:0 14px;border:1px solid #D5D0C4;border-radius:7px;background:#fff;color:#3A3A3E;font-size:13px;font-weight:500;cursor:pointer" style-hover="background:#F2F0EB">İptal</button>
+          <button onClick="{{ save }}" style="height:34px;padding:0 16px;border:none;border-radius:7px;background:#F5B301;color:#1C1C1E;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;cursor:pointer" style-hover="background:#DDA000">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:24px;right:24px;z-index:60;display:flex;align-items:flex-start;gap:10px;min-width:300px;padding:12px 14px;background:#fff;border:1px solid #E5E1D8;border-left:3px solid #2E9E5B;border-radius:8px;box-shadow:0 8px 26px rgba(28,28,30,.14);animation:toastIn .18s ease">
+      <div style="flex:1 1 auto"><div style="font-size:13px;font-weight:600">{{ toastTitle }}</div><div style="font-size:12px;color:#8B8B92;margin-top:1px">{{ toast }}</div></div>
+      <div onClick="{{ closeToast }}" style="font-size:12px;color:#B0ABA0;cursor:pointer">✕</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;satirYuksekligi&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Rahat&quot;,&quot;Kompakt&quot;],&quot;default&quot;:&quot;Rahat&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Tablo&quot;},&quot;zebraSatir&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Tablo&quot;},&quot;kaynakIkonlari&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Tablo&quot;}}">
+const PERSONEL = [
+  { id:1, ad:'Mehmet', soyad:'Arslan', kart:'4821', grup:'Üretim — Vardiyalı', aktif:true },
+  { id:2, ad:'Elif', soyad:'Kaya', kart:'4822', grup:'Merkez Ofis', aktif:true },
+  { id:3, ad:'Burak', soyad:'Şahin', kart:'4823', grup:'Saha Ekibi', aktif:true },
+  { id:4, ad:'Zeynep', soyad:'Demir', kart:'4824', grup:'Merkez Ofis', aktif:false },
+  { id:5, ad:'Ahmet', soyad:'Yılmaz', kart:'4825', grup:'Üretim — Vardiyalı', aktif:true },
+  { id:6, ad:'Selin', soyad:'Aydın', kart:'4826', grup:'Yönetim', aktif:true },
+  { id:7, ad:'Kemal', soyad:'Öztürk', kart:'4827', grup:'Üretim — Vardiyalı', aktif:true },
+  { id:8, ad:'Hatice', soyad:'Çelik', kart:'4828', grup:'Merkez Ofis', aktif:true },
+  { id:9, ad:'Onur', soyad:'Koç', kart:'4829', grup:'Saha Ekibi', aktif:false },
+  { id:10, ad:'Merve', soyad:'Doğan', kart:'4830', grup:'Merkez Ofis', aktif:true },
+  { id:11, ad:'Serkan', soyad:'Polat', kart:'4831', grup:'Üretim — Vardiyalı', aktif:true },
+  { id:12, ad:'Ayşe', soyad:'Erdem', kart:'4832', grup:'Yönetim', aktif:true }
+];
+
+const D = {
+  tam:      { label:'Tam',         fg:'#2E9E5B', bg:'#E8F6ED' },
+  gec:      { label:'Geç Geldi',   fg:'#D4760A', bg:'#FBEEDC' },
+  erken:    { label:'Erken Çıktı', fg:'#D4760A', bg:'#FBEEDC' },
+  eksik:    { label:'Eksik Çıkış', fg:'#D9483B', bg:'#FBE9E7' },
+  devamsiz: { label:'Devamsız',    fg:'#6B6B70', bg:'#F2F0EB' },
+  tatil:    { label:'Tatil',       fg:'#2B7EC1', bg:'#E7F1FA' }
+};
+const K = {
+  TRM: { bg:'#F2F0EB', fg:'#6B6B70' },
+  MOB: { bg:'#FFF8E1', fg:'#F5B301' },
+  MAN: { bg:'#FBEEDC', fg:'#D4760A' }
+};
+
+const RAPOR = [
+  ['07.08.2026','Mehmet Arslan','Gündüz 08:00-17:00','08:32','17:04','gec','TRM','0s 32dk','—','0s 32dk'],
+  ['07.08.2026','Elif Kaya','Ofis 09:00-18:00','08:56','18:02','tam','TRM','—','—','—'],
+  ['07.08.2026','Burak Şahin','Saha 08:00-17:00','08:04','—','eksik','MOB','—','—','—'],
+  ['07.08.2026','Ahmet Yılmaz','Vardiya 2 16:00-24:00','16:00','23:12','erken','TRM','—','0s 48dk','0s 48dk'],
+  ['07.08.2026','Selin Aydın','Ofis 09:00-18:00','—','—','devamsiz','MAN','—','—','8s 00dk'],
+  ['07.08.2026','Kemal Öztürk','Gündüz 08:00-17:00','07:58','17:01','tam','TRM','—','—','—'],
+  ['06.08.2026','Mehmet Arslan','Gündüz 08:00-17:00','08:01','16:12','erken','TRM','—','0s 48dk','0s 48dk'],
+  ['06.08.2026','Hatice Çelik','Ofis 09:00-18:00','09:41','18:05','gec','MOB','0s 41dk','—','0s 41dk'],
+  ['06.08.2026','Merve Doğan','Ofis 09:00-18:00','08:58','18:00','tam','TRM','—','—','—'],
+  ['05.08.2026','Serkan Polat','Vardiya 1 00:00-08:00','00:06','08:02','tam','TRM','—','—','—'],
+  ['05.08.2026','Ayşe Erdem','Ofis 09:00-18:00','—','—','tatil','MAN','—','—','—'],
+  ['05.08.2026','Onur Koç','Saha 08:00-17:00','09:18','15:44','gec','MOB','1s 18dk','1s 16dk','2s 34dk']
+];
+
+const MENU = [
+  ['Tanımlar', ['Personel','Cihazlar','Vardiyalar','Çalışma Grupları','Tatiller']],
+  ['İşlemler', ['Hareketler']],
+  ['Raporlar', ['Günlük Rapor','Aylık Özet']],
+  ['Sistem', ['Kullanıcılar']],
+  ['Kılavuz', ['Tasarım Sistemi']]
+];
+
+const CRUMB = {
+  'Personel':'Tanımlar', 'Cihazlar':'Tanımlar', 'Vardiyalar':'Tanımlar',
+  'Çalışma Grupları':'Tanımlar', 'Tatiller':'Tanımlar', 'Hareketler':'İşlemler',
+  'Günlük Rapor':'Raporlar', 'Aylık Özet':'Raporlar', 'Kullanıcılar':'Sistem',
+  'Tasarım Sistemi':'Kılavuz'
+};
+
+class Component extends DCLogic {
+  state = {
+    screen:'Personel', collapsed:false, userMenu:false,
+    query:'', fGrup:'', fDurum:'', sortDir:'asc',
+    drawer:null, form:{ ad:'', soyad:'', kart:'', grup:'', aktif:true }, errors:{},
+    toast:null, toastTitle:''
+  };
+
+  set = (k, v) => this.setState({ [k]: v });
+  setForm = (k, v) => this.setState(s => ({ form:{ ...s.form, [k]:v }, errors:{ ...s.errors, [k]:null } }));
+
+  openNew = () => this.setState({ drawer:'new', errors:{}, form:{ ad:'', soyad:'', kart:'', grup:'', aktif:true } });
+  openEdit = (p) => this.setState({ drawer:'edit', errors:{}, form:{ ad:p.ad, soyad:p.soyad, kart:p.kart, grup:p.grup, aktif:p.aktif } });
+
+  save = () => {
+    const f = this.state.form, e = {};
+    if (!f.ad.trim()) e.ad = 'Ad zorunludur.';
+    if (!f.soyad.trim()) e.soyad = 'Soyad zorunludur.';
+    if (!f.kart.trim()) e.kart = 'Kart numarası zorunludur.';
+    else if (!/^\d+$/.test(f.kart.trim())) e.kart = 'Yalnızca rakam girilebilir.';
+    if (!f.grup) e.grup = 'Çalışma grubu zorunludur.';
+    if (Object.keys(e).length) return this.setState({ errors:e });
+    const isNew = this.state.drawer === 'new';
+    this.setState({
+      drawer:null, errors:{},
+      toastTitle: isNew ? 'Personel eklendi' : 'Personel güncellendi',
+      toast: (f.ad + ' ' + f.soyad).trim() + (isNew ? ' kayıtlara eklendi.' : ' bilgileri kaydedildi.')
+    });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast:null }), 4000);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const zebra = this.props.zebraSatir ?? true;
+    const rowH = (this.props.satirYuksekligi ?? 'Rahat') === 'Kompakt' ? 36 : 46;
+    const showKaynak = this.props.kaynakIkonlari ?? true;
+    const q = s.query.trim().toLocaleLowerCase('tr');
+
+    let list = PERSONEL.filter(p => {
+      const tam = (p.ad + ' ' + p.soyad).toLocaleLowerCase('tr');
+      if (q && tam.indexOf(q) < 0 && p.kart.indexOf(q) < 0) return false;
+      if (s.fGrup && p.grup !== s.fGrup) return false;
+      if (s.fDurum === 'aktif' && !p.aktif) return false;
+      if (s.fDurum === 'pasif' && p.aktif) return false;
+      return true;
+    });
+    list = list.slice().sort((a, b) => {
+      const r = (a.ad + a.soyad).localeCompare(b.ad + b.soyad, 'tr');
+      return s.sortDir === 'asc' ? r : -r;
+    });
+
+    const personelRows = list.map((p, i) => ({
+      tam: p.ad + ' ' + p.soyad,
+      ini: (p.ad[0] + p.soyad[0]).toLocaleUpperCase('tr'),
+      kart: p.kart, grup: p.grup,
+      sLabel: p.aktif ? 'Aktif' : 'Pasif',
+      sFg: p.aktif ? '#2E9E5B' : '#8B8B92',
+      sBg: p.aktif ? '#E8F6ED' : '#F2F0EB',
+      bg: zebra && i % 2 === 1 ? '#FBFAF6' : '#ffffff',
+      open: (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); this.openEdit(p); }
+    }));
+
+    const raporRows = RAPOR.map((r, i) => {
+      const d = D[r[5]], k = K[r[6]];
+      return {
+        tarih:r[0], personel:r[1], vardiya:r[2], giris:r[3], cikis:r[4],
+        durum:d.label, dFg:d.fg, dBg:d.bg,
+        kaynak:r[6], kBg:k.bg, kFg:k.fg, showKaynak: showKaynak && r[3] !== '—',
+        gec:r[7], erken:r[8], eksik:r[9],
+        girisFg: r[3] === '—' ? '#B0ABA0' : (r[5] === 'gec' ? '#D4760A' : '#1C1C1E'),
+        cikisFg: r[4] === '—' ? '#D9483B' : (r[5] === 'erken' ? '#D4760A' : '#1C1C1E'),
+        gecFg: r[7] === '—' ? '#C4BFB3' : '#D4760A',
+        erkenFg: r[8] === '—' ? '#C4BFB3' : '#D4760A',
+        eksikFg: r[9] === '—' ? '#C4BFB3' : '#1C1C1E',
+        bg: zebra && i % 2 === 1 ? '#FBFAF6' : '#ffffff'
+      };
+    });
+
+    const groups = MENU.map(([label, items]) => ({
+      label,
+      items: items.map(name => {
+        const active = s.screen === name;
+        return {
+          label: name,
+          bg: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+          fg: active ? '#FFFFFF' : '#A0A0A8',
+          fw: active ? 600 : 400,
+          dot: active ? '#F5B301' : 'rgba(255,255,255,0.16)',
+          go: () => this.setState({ screen:name, drawer:null, userMenu:false })
+        };
+      })
+    }));
+
+    const e = s.errors;
+    const err = k => e[k] || '';
+    const bord = k => (e[k] ? '#D9483B' : '#D5D0C4');
+
+    return {
+      groups, rowH,
+      expanded: !s.collapsed,
+      sidebarW: s.collapsed ? 62 : 248,
+      collapseIcon: s.collapsed ? '»' : '«',
+      toggleSidebar: () => this.set('collapsed', !s.collapsed),
+      userMenu: s.userMenu,
+      toggleUserMenu: () => this.set('userMenu', !s.userMenu),
+      screenTitle: s.screen,
+      breadcrumb: CRUMB[s.screen] + ' / ' + s.screen,
+      isPersonel: s.screen === 'Personel',
+      isRapor: s.screen === 'Günlük Rapor',
+      isSistem: s.screen === 'Tasarım Sistemi',
+      isStub: ['Personel','Günlük Rapor','Tasarım Sistemi'].indexOf(s.screen) < 0,
+
+      query: s.query, fGrup: s.fGrup, fDurum: s.fDurum,
+      onQuery: ev => this.set('query', ev.target.value),
+      onGrup: ev => this.set('fGrup', ev.target.value),
+      onDurum: ev => this.set('fDurum', ev.target.value),
+      clearFilters: () => this.setState({ query:'', fGrup:'', fDurum:'' }),
+      sortAd: () => this.set('sortDir', s.sortDir === 'asc' ? 'desc' : 'asc'),
+      sortArrow: s.sortDir === 'asc' ? '▲' : '▼',
+      personelRows, raporRows,
+      personelEmpty: personelRows.length === 0,
+      pageInfo: 'Toplam ' + list.length + ' kayıt' + (list.length ? ' — 1-' + list.length + ' arası gösteriliyor' : ''),
+      newPersonel: this.openNew,
+
+      drawerOpen: !!s.drawer,
+      isEdit: s.drawer === 'edit',
+      drawerTitle: s.drawer === 'edit' ? 'Personeli Düzenle' : 'Yeni Personel',
+      drawerSub: s.drawer === 'edit' ? 'Kart No ' + (s.form.kart || '—') : 'Zorunlu alanları doldurup kaydedin.',
+      closeDrawer: () => this.setState({ drawer:null, errors:{} }),
+      save: this.save,
+      fAd: s.form.ad, fSoyad: s.form.soyad, fKart: s.form.kart, fGrupForm: s.form.grup,
+      onAd: ev => this.setForm('ad', ev.target.value),
+      onSoyad: ev => this.setForm('soyad', ev.target.value),
+      onKart: ev => this.setForm('kart', ev.target.value),
+      onGrupForm: ev => this.setForm('grup', ev.target.value),
+      eAd: err('ad'), eSoyad: err('soyad'), eKart: err('kart'), eGrup: err('grup'),
+      eAdBorder: bord('ad'), eSoyadBorder: bord('soyad'), eKartBorder: bord('kart'), eGrupBorder: bord('grup'),
+      grupBos: !s.form.grup,
+      aktifBg: s.form.aktif ? '#F5B301' : '#D5D0C4',
+      aktifJustify: s.form.aktif ? 'flex-end' : 'flex-start',
+      toggleAktif: () => this.setForm('aktif', !s.form.aktif),
+
+      toast: s.toast, toastTitle: s.toastTitle,
+      closeToast: () => this.setState({ toast:null })
+    };
+  }
+}
+</script>
+</body>
+</html>

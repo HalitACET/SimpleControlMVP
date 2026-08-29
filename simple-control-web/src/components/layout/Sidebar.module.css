@@ -1,0 +1,204 @@
+.sidebar {
+  width: 240px;
+  flex: 0 0 auto;
+  background-color: var(--color-bg-sidebar);
+  border-right: 1px solid var(--color-border-inverse);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.16s ease;
+}
+
+.sidebar.collapsed {
+  width: 64px;
+}
+
+.logoArea {
+  height: 56px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0 var(--space-lg);
+  border-bottom: 1px solid var(--color-border-inverse);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.logoIcon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.logoTextContainer {
+  min-width: 0;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.16s ease, visibility 0s linear 0s;
+}
+
+.collapsed .logoTextContainer {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.logoTitle {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--color-text-inverse);
+}
+
+.logoSubtitle {
+  font-size: var(--font-size-label);
+  color: var(--color-text-inverse-muted);
+  margin-top: -1px;
+}
+
+.nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-md) var(--space-sm);
+  overflow-x: hidden;
+}
+
+.group {
+  margin-bottom: var(--space-md);
+}
+
+.groupLabel {
+  padding: 0 var(--space-md) var(--space-xs);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-inverse-muted);
+  white-space: nowrap;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.16s ease, visibility 0s linear 0s;
+}
+
+.collapsed .groupLabel {
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  height: 32px;
+  padding: 0 var(--space-md);
+  margin-bottom: 1px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-body);
+  color: var(--color-text-inverse-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-inverse);
+}
+
+.navItem.active {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-medium);
+}
+
+.navItemIndicator {
+  width: 2px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 1px;
+  background-color: transparent;
+}
+
+.navItem.active .navItemIndicator {
+  background-color: var(--color-accent);
+}
+
+.navItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.navItemText {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.16s ease, visibility 0s linear 0s;
+}
+
+.collapsed .navItemText {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.footer {
+  flex: 0 0 auto;
+  padding: var(--space-sm);
+  border-top: 1px solid var(--color-border-inverse);
+}
+
+.collapseButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  height: 32px;
+  padding: 0 var(--space-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-inverse-muted);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  outline: none;
+}
+
+.collapseButton:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-inverse);
+}
+
+.collapseIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.collapseText {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.16s ease, visibility 0s linear 0s;
+}
+
+.collapsed .collapseText {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, visibility 0s linear 0.16s;
+}

@@ -1,0 +1,19 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-bg-page);
+}
+
+.mainWrapper {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-xl);
+}
