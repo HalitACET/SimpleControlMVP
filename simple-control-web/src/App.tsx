@@ -5,6 +5,7 @@ import Employees from './pages/Employees';
 import Shifts from './pages/Shifts';
 import WorkGroups from './pages/WorkGroups';
 import Holidays from './pages/Holidays';
+import DailyReport from './pages/DailyReport';
 import Styleguide from './pages/Styleguide';
 
 import AppLayout from './components/layout/AppLayout';
@@ -27,6 +28,7 @@ function App() {
             <Route path="/shifts" element={<Shifts />} />
             <Route path="/work-groups" element={<WorkGroups />} />
             <Route path="/holidays" element={<Holidays />} />
+            <Route path="/reports/daily" element={<DailyReport />} />
             <Route path="/styleguide" element={<Styleguide />} />
           </Route>
           
