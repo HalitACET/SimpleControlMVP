@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Badge from '../components/ui/badge/Badge';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { handleApiError } from '../utils/errorHandler';
@@ -157,7 +158,7 @@ export default function Shifts() {
                   <td className={styles.tdMono}>
                     {formatTime(shift.startTime)} - {formatTime(shift.endTime)}
                     {shift.crossesMidnight && (
-                      <span className={styles.nightBadge}>Gece</span>
+                      <Badge variant="info" className={styles.nightBadge}>Gece</Badge>
                     )}
                   </td>
                   <td className={styles.td}>

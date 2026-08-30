@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, type FormEvent } from 'react';
-import { X } from 'lucide-react';
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
@@ -7,6 +6,8 @@ import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
 import FormInput from '../ui/form/FormInput';
 import FormSelect from '../ui/form/FormSelect';
 import { type WorkGroupListResponse } from '../../pages/WorkGroups';
+import Drawer from '../ui/drawer/Drawer';
+import drawerStyles from '../ui/drawer/Drawer.module.css';
 import styles from './EmployeeDrawer.module.css';
 
 interface Employee {
@@ -205,98 +206,96 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div className={styles.overlay} onClick={handleCloseRequest}></div>
-      <div className={styles.drawer} ref={drawerRef} role="dialog" aria-modal="true">
-        <div className={styles.header}>
-          <div>
-            <div className={styles.title}>{isEdit ? 'Personeli Düzenle' : 'Yeni Personel'}</div>
-            <div className={styles.subtitle}>{isEdit ? 'Personel bilgilerini güncelleyin' : 'Sisteme yeni bir personel ekleyin'}</div>
-          </div>
-          <button className={styles.closeButton} onClick={handleCloseRequest} title="Kapat">
-            <X size={18} />
+    <Drawer
+      isOpen={isOpen}
+      onClose={onClose}
+      isDirty={isDirty}
+      title={isEdit ? 'Personeli Düzenle' : 'Yeni Personel'}
+      subtitle={isEdit ? 'Personel bilgilerini güncelleyin' : 'Sisteme yeni bir personel ekleyin'}
+      footerLeft={
+        isEdit && (
+          <button
+            type="button"
+            className={styles.btnDelete}
+            onClick={handleDelete}
+            disabled={isSubmitting}
+          >
+            Personeli Sil
           </button>
+        )
+      }
+      footerRight={
+        <>
+          <button
+            type="button"
+            className={drawerStyles.btnCancel}
+            onClick={() => {
+              if (isDirty) {
+                confirm({
+                  title: 'Kaydetmeden Çık',
+                  message: 'Kaydedilmemiş değişiklikler var, çıkmak istediğinize emin misiniz?',
+                  confirmText: 'Evet, Çık',
+                  cancelText: 'Vazgeç'
+                }).then(res => res && onClose());
+              } else {
+                onClose();
+              }
+            }}
+            disabled={isSubmitting}
+          >
+            İptal
+          </button>
+          <button
+            type="submit"
+            form="employee-form"
+            className={drawerStyles.btnSave}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
+          </button>
+        </>
+      }
+    >
+      {globalError && <div className={styles.globalError}>{globalError}</div>}
+      
+      <form id="employee-form" onSubmit={handleSubmit}>
+        <div className={styles.row}>
+          <FormInput
+            label="Ad"
+            value={firstName}
+            onChange={handleChange(setFirstName)}
+            placeholder="Örn. Mehmet"
+            error={fieldErrors.firstName}
+          />
+          <FormInput
+            label="Soyad"
+            value={lastName}
+            onChange={handleChange(setLastName)}
+            placeholder="Örn. Arslan"
+            error={fieldErrors.lastName}
+          />
         </div>
 
-        <div className={styles.body}>
-          {globalError && <div className={styles.globalError}>{globalError}</div>}
-          
-          <form id="employee-form" onSubmit={handleSubmit}>
-            <div className={styles.row}>
-              <FormInput
-                ref={firstInputRef}
-                label="Ad"
-                value={firstName}
-                onChange={handleChange(setFirstName)}
-                placeholder="Örn. Mehmet"
-                error={fieldErrors.firstName}
-              />
-              <FormInput
-                label="Soyad"
-                value={lastName}
-                onChange={handleChange(setLastName)}
-                placeholder="Örn. Arslan"
-                error={fieldErrors.lastName}
-              />
-            </div>
-
-            <FormInput
-              label="Kart Numarası"
-              value={cardNo}
-              onChange={handleChange(setCardNo)}
-              placeholder="Örn. 4821"
-              error={fieldErrors.cardNo}
-              hint="Terminalde okutulan kartın üzerindeki numara."
-              isMono
-            />
-            <FormSelect
-              label="Çalışma Grubu"
-              value={workGroupId}
-              onChange={(e) => {
-                setWorkGroupId(e.target.value);
-                if (!isDirty) setIsDirty(true);
-              }}
-              options={[{ value: '', label: 'Atanmamış' }, ...workGroups.map(wg => ({ value: String(wg.id), label: wg.name }))]}
-            />
-          </form>
-        </div>
-
-        <div className={styles.footer}>
-          <div>
-            {isEdit && (
-              <button
-                type="button"
-                className={styles.btnDelete}
-                onClick={handleDelete}
-                disabled={isSubmitting}
-              >
-                Personeli Sil
-              </button>
-            )}
-          </div>
-          <div className={styles.footerRight}>
-            <button
-              type="button"
-              className={styles.btnCancel}
-              onClick={handleCloseRequest}
-              disabled={isSubmitting}
-            >
-              İptal
-            </button>
-            <button
-              type="submit"
-              form="employee-form"
-              className={styles.btnSave}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+        <FormInput
+          label="Kart Numarası"
+          value={cardNo}
+          onChange={handleChange(setCardNo)}
+          placeholder="Örn. 4821"
+          error={fieldErrors.cardNo}
+          hint="Terminalde okutulan kartın üzerindeki numara."
+          isMono
+        />
+        <FormSelect
+          label="Çalışma Grubu"
+          value={workGroupId}
+          onChange={(e) => {
+            setWorkGroupId(e.target.value);
+            if (!isDirty) setIsDirty(true);
+          }}
+          options={[{ value: '', label: 'Atanmamış' }, ...workGroups.map(wg => ({ value: String(wg.id), label: wg.name }))]}
+        />
+      </form>
+    </Drawer>
   );
 }

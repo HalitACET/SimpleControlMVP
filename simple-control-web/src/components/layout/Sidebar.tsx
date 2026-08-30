@@ -29,13 +29,14 @@ export default function Sidebar() {
     {
       label: 'İşlemler',
       items: [
-        { label: 'Hareket Kayıtları', path: '#hareket', icon: <Clock size={18} /> },
+        { label: 'Hareket Kayıtları', path: '/scans', icon: <Clock size={18} /> },
       ],
     },
     {
       label: 'Raporlar',
       items: [
         { label: 'Günlük Rapor', path: '/reports/daily', icon: <FileText size={18} /> },
+        { label: 'Aylık Puantaj', path: '/reports/monthly', icon: <CalendarDays size={18} /> },
       ],
     },
     {

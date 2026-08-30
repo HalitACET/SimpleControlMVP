@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Badge from '../components/ui/badge/Badge';
 import api from '../api/axios';
 import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import FormInput from '../components/ui/form/FormInput';
@@ -124,12 +125,12 @@ export default function DailyReport() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'NORMAL': return <span className={`${styles.badge} ${styles.badgeSuccess}`}>Normal</span>;
-      case 'EKSIK_CIKIS': return <span className={`${styles.badge} ${styles.badgeWarning}`}>Eksik Çıkış</span>;
-      case 'DEVAMSIZ': return <span className={`${styles.badge} ${styles.badgeError}`}>Devamsız</span>;
-      case 'TATIL': return <span className={`${styles.badge} ${styles.badgeInfo}`}>Tatil</span>;
-      case 'GRUP_ATANMAMIS': return <span className={styles.badge}>Grup Yok</span>;
-      default: return <span className={styles.badge}>{status}</span>;
+      case 'NORMAL': return <Badge variant="success">Normal</Badge>;
+      case 'EKSIK_CIKIS': return <Badge variant="warning">Eksik Çıkış</Badge>;
+      case 'DEVAMSIZ': return <Badge variant="error">Devamsız</Badge>;
+      case 'TATIL': return <Badge variant="info">Tatil</Badge>;
+      case 'GRUP_ATANMAMIS': return <Badge variant="neutral">Grup Yok</Badge>;
+      default: return <Badge variant="neutral">{status}</Badge>;
     }
   };
 

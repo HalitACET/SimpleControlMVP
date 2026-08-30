@@ -5,7 +5,10 @@ import Employees from './pages/Employees';
 import Shifts from './pages/Shifts';
 import WorkGroups from './pages/WorkGroups';
 import Holidays from './pages/Holidays';
+import Scans from './pages/Scans';
 import DailyReport from './pages/DailyReport';
+import MonthlyReport from './pages/MonthlyReport';
+import MonthlyReportDetail from './pages/MonthlyReportDetail';
 import Styleguide from './pages/Styleguide';
 
 import AppLayout from './components/layout/AppLayout';
@@ -28,7 +31,10 @@ function App() {
             <Route path="/shifts" element={<Shifts />} />
             <Route path="/work-groups" element={<WorkGroups />} />
             <Route path="/holidays" element={<Holidays />} />
+            <Route path="/scans" element={<Scans />} />
             <Route path="/reports/daily" element={<DailyReport />} />
+            <Route path="/reports/monthly" element={<MonthlyReport />} />
+            <Route path="/reports/monthly/:employeeId" element={<MonthlyReportDetail />} />
             <Route path="/styleguide" element={<Styleguide />} />
           </Route>
           

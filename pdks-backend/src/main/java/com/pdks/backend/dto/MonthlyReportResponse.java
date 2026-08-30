@@ -13,6 +13,7 @@ public class MonthlyReportResponse {
 
     private int expectedWorkDays;
     private int attendedDays;
+    private int holidayWorkDays;
     private int absentDays;
     private int missingExitDays;
 

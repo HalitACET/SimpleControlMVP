@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, type FormEvent } from 'react';
-import { X } from 'lucide-react';
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
 import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
+import Drawer from '../ui/drawer/Drawer';
+import drawerStyles from '../ui/drawer/Drawer.module.css';
+import styles from '../employees/EmployeeDrawer.module.css';
 import FormInput from '../ui/form/FormInput';
-import styles from '../employees/EmployeeDrawer.module.css'; // Reusing EmployeeDrawer styles
 import { type Shift } from '../../pages/Shifts';
 
 interface ShiftDrawerProps {
@@ -261,138 +262,135 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
     return `${minutes}dk`;
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div className={styles.overlay} onClick={handleCloseRequest}></div>
-      <div className={styles.drawer} ref={drawerRef} role="dialog" aria-modal="true">
-        <div className={styles.header}>
-          <div>
-            <div className={styles.title}>{isEdit ? 'Vardiyayı Düzenle' : 'Yeni Vardiya'}</div>
-            <div className={styles.subtitle}>{isEdit ? 'Vardiya saatlerini ve toleranslarını güncelleyin' : 'Sisteme yeni bir vardiya ekleyin'}</div>
-          </div>
-          <button className={styles.closeButton} onClick={handleCloseRequest} title="Kapat">
-            <X size={18} />
+    <Drawer
+      isOpen={isOpen}
+      onClose={onClose}
+      isDirty={isDirty}
+      title={isEdit ? 'Vardiyayı Düzenle' : 'Yeni Vardiya'}
+      subtitle={isEdit ? 'Vardiya saatlerini ve toleranslarını güncelleyin' : 'Sisteme yeni bir vardiya ekleyin'}
+      footerLeft={
+        isEdit && (
+          <button
+            type="button"
+            className={styles.btnDelete}
+            onClick={handleDelete}
+            disabled={isSubmitting}
+          >
+            Vardiyayı Sil
           </button>
+        )
+      }
+      footerRight={
+        <>
+          <button
+            type="button"
+            className={drawerStyles.btnCancel}
+            onClick={() => {
+              if (isDirty) {
+                confirm({
+                  title: 'Kaydetmeden Çık',
+                  message: 'Kaydedilmemiş değişiklikler var, çıkmak istediğinize emin misiniz?',
+                  confirmText: 'Evet, Çık',
+                  cancelText: 'Vazgeç'
+                }).then(res => res && onClose());
+              } else {
+                onClose();
+              }
+            }}
+            disabled={isSubmitting}
+          >
+            İptal
+          </button>
+          <button
+            type="submit"
+            form="shift-form"
+            className={drawerStyles.btnSave}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
+          </button>
+        </>
+      }
+    >
+      {globalError && <div className={styles.globalError}>{globalError}</div>}
+      
+      <form id="shift-form" onSubmit={handleSubmit}>
+        <FormInput
+          label="Vardiya Adı"
+          value={name}
+          onChange={handleChange(setName)}
+          placeholder="Örn. Gündüz Vardiyası"
+          error={fieldErrors.name}
+        />
+
+        <div className={styles.row}>
+          <FormInput
+            label="Başlangıç Saati"
+            type="time"
+            value={startTime}
+            onChange={handleChange(setStartTime)}
+            error={fieldErrors.startTime}
+          />
+          <FormInput
+            label="Bitiş Saati"
+            type="time"
+            value={endTime}
+            onChange={handleChange(setEndTime)}
+            error={fieldErrors.endTime}
+          />
+        </div>
+        
+        <div className={styles.row}>
+          <FormInput
+            label="Mola (dk)"
+            type="number"
+            min="0"
+            value={breakMinutes}
+            onChange={handleChange(setBreakMinutes)}
+            error={fieldErrors.breakMinutes}
+          />
+          <FormInput
+            label="Geç Kalma Tol. (dk)"
+            type="number"
+            min="0"
+            value={lateToleranceMinutes}
+            onChange={handleChange(setLateToleranceMinutes)}
+            error={fieldErrors.lateToleranceMinutes}
+            hint="Sadece bu dakika aşılırsa geç sayılır."
+          />
         </div>
 
-        <div className={styles.body}>
-          {globalError && <div className={styles.globalError}>{globalError}</div>}
-          
-          <form id="shift-form" onSubmit={handleSubmit}>
-            <FormInput
-              ref={firstInputRef}
-              label="Vardiya Adı"
-              value={name}
-              onChange={handleChange(setName)}
-              placeholder="Örn. Gündüz Vardiyası"
-              error={fieldErrors.name}
-            />
+        <FormInput
+          label="Erken Çıkış Tol. (dk)"
+          type="number"
+          min="0"
+          value={earlyExitToleranceMinutes}
+          onChange={handleChange(setEarlyExitToleranceMinutes)}
+          error={fieldErrors.earlyExitToleranceMinutes}
+          hint="Sadece bu dakika aşılırsa erken çıktı sayılır."
+        />
 
-            <div className={styles.row}>
-              <FormInput
-                label="Başlangıç Saati"
-                type="time"
-                value={startTime}
-                onChange={handleChange(setStartTime)}
-                error={fieldErrors.startTime}
-              />
-              <FormInput
-                label="Bitiş Saati"
-                type="time"
-                value={endTime}
-                onChange={handleChange(setEndTime)}
-                error={fieldErrors.endTime}
-              />
-            </div>
-            
-            <div className={styles.row}>
-              <FormInput
-                label="Mola (dk)"
-                type="number"
-                min="0"
-                value={breakMinutes}
-                onChange={handleChange(setBreakMinutes)}
-                error={fieldErrors.breakMinutes}
-              />
-            </div>
-
-            <div className={styles.row}>
-              <FormInput
-                label="Geç Kalma Toleransı (dk)"
-                type="number"
-                min="0"
-                value={lateToleranceMinutes}
-                onChange={handleChange(setLateToleranceMinutes)}
-                error={fieldErrors.lateToleranceMinutes}
-                hint="Giriş yaparken bu süreye kadar ceza kesilmez."
-              />
-              <FormInput
-                label="Erken Çıkış Toleransı (dk)"
-                type="number"
-                min="0"
-                value={earlyExitToleranceMinutes}
-                onChange={handleChange(setEarlyExitToleranceMinutes)}
-                error={fieldErrors.earlyExitToleranceMinutes}
-                hint="Çıkış yaparken bu süreye kadar ceza kesilmez."
-              />
-            </div>
-
-            {/* Dynamic Info Box */}
-            <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', backgroundColor: 'var(--color-surface-sunken)', borderRadius: 'var(--radius-sm)', fontSize: 'var(--font-size-body)', color: 'var(--color-text-primary-variant)' }}>
-              {shiftInfo && !shiftInfo.error ? (
-                <>
-                  <span style={{ fontWeight: 'var(--font-weight-medium)' }}>Süre:</span> {formatDuration(shiftInfo.duration as number)}
-                  {shiftInfo.crossesMidnight && (
-                    <span style={{ color: 'var(--color-info)', fontWeight: 'var(--font-weight-medium)' }}>
-                      {' '}· Gece vardiyası (ertesi güne sarkıyor)
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span style={{ color: 'var(--color-text-disabled)' }}>
-                  Süre hesabı için geçerli saatler ve mola girin.
+        <div className={styles.infoBox}>
+          {shiftInfo?.error ? (
+            <span style={{ color: 'var(--color-error)' }}>{shiftInfo.error}</span>
+          ) : shiftInfo ? (
+            <>
+              <span style={{ fontWeight: 'var(--font-weight-medium)' }}>Süre:</span> {formatDuration(shiftInfo.duration as number)}
+              {shiftInfo.crossesMidnight && (
+                <span style={{ color: 'var(--color-info)', fontWeight: 'var(--font-weight-medium)' }}>
+                  {' '}• Gece vardiyası (ertesi güne sarkıyor)
                 </span>
               )}
-            </div>
-
-          </form>
+            </>
+          ) : (
+            <span style={{ color: 'var(--color-text-disabled)' }}>
+              Süre hesabı için geçerli saatler ve mola girin.
+            </span>
+          )}
         </div>
 
-        <div className={styles.footer}>
-          <div>
-            {isEdit && (
-              <button
-                type="button"
-                className={styles.btnDelete}
-                onClick={handleDelete}
-                disabled={isSubmitting}
-              >
-                Vardiyayı Sil
-              </button>
-            )}
-          </div>
-          <div className={styles.footerRight}>
-            <button
-              type="button"
-              className={styles.btnCancel}
-              onClick={handleCloseRequest}
-              disabled={isSubmitting}
-            >
-              İptal
-            </button>
-            <button
-              type="submit"
-              form="shift-form"
-              className={styles.btnSave}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+      </form>
+    </Drawer>
   );
 }

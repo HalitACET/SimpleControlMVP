@@ -111,6 +111,7 @@ public class AdminReportService {
 
             int expectedWorkDays = 0;
             int attendedDays = 0;
+            int holidayWorkDays = 0;
             int absentDays = 0;
             int missingExitDays = 0;
             int totalWorkedMinutes = 0;
@@ -135,6 +136,9 @@ public class AdminReportService {
                     attendedDays++;
                 } else if ((dto.getStatus() == com.pdks.backend.dto.DailyAttendanceStatus.TATIL || dto.getStatus() == com.pdks.backend.dto.DailyAttendanceStatus.GRUP_ATANMAMIS) && dto.getScanCount() > 0) {
                     attendedDays++; // TATIL de olsa gelmis
+                    if (dto.getStatus() == com.pdks.backend.dto.DailyAttendanceStatus.TATIL) {
+                        holidayWorkDays++;
+                    }
                 }
 
                 if (dto.getLateMinutes() != null && dto.getLateMinutes() > 0) {
@@ -157,6 +161,7 @@ public class AdminReportService {
                     .workGroupName(wgName)
                     .expectedWorkDays(expectedWorkDays)
                     .attendedDays(attendedDays)
+                    .holidayWorkDays(holidayWorkDays)
                     .absentDays(absentDays)
                     .missingExitDays(missingExitDays)
                     .totalWorkedMinutes(totalWorkedMinutes)

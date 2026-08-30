@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, type FormEvent } from 'react';
-import { X } from 'lucide-react';
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
 import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
 import FormInput from '../ui/form/FormInput';
 import FormSelect from '../ui/form/FormSelect';
+import Drawer from '../ui/drawer/Drawer';
+import drawerStyles from '../ui/drawer/Drawer.module.css';
 import styles from './WorkGroupDrawer.module.css';
 import { type WorkGroup } from '../../pages/WorkGroups';
 import { type Shift } from '../../pages/Shifts';
@@ -233,127 +234,125 @@ export default function WorkGroupDrawer({ isOpen, onClose, onSuccess, groupToEdi
     ...shifts.map(s => ({ value: String(s.id), label: s.name }))
   ];
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div className={styles.overlay} onClick={handleCloseRequest}></div>
-      <div className={styles.drawer} ref={drawerRef} role="dialog" aria-modal="true" style={{ width: '560px' }}>
-        <div className={styles.header}>
-          <div>
-            <div className={styles.title}>{isEdit ? 'Grubu Düzenle' : 'Yeni Grup'}</div>
-            <div className={styles.subtitle}>{isEdit ? 'Çalışma grubu bilgilerini güncelleyin' : 'Sisteme yeni bir çalışma grubu ekleyin'}</div>
-          </div>
-          <button className={styles.closeButton} onClick={handleCloseRequest} title="Kapat">
-            <X size={18} />
+    <Drawer
+      isOpen={isOpen}
+      onClose={onClose}
+      isDirty={isDirty}
+      width={560}
+      title={isEdit ? 'Grubu Düzenle' : 'Yeni Grup'}
+      subtitle={isEdit ? 'Çalışma grubu bilgilerini güncelleyin' : 'Sisteme yeni bir çalışma grubu ekleyin'}
+      footerLeft={
+        isEdit && (
+          <button
+            type="button"
+            className={styles.btnDelete}
+            onClick={handleDelete}
+            disabled={isSubmitting}
+          >
+            Grubu Sil
           </button>
+        )
+      }
+      footerRight={
+        <>
+          <button
+            type="button"
+            className={drawerStyles.btnCancel}
+            onClick={() => {
+              if (isDirty) {
+                confirm({
+                  title: 'Kaydetmeden Çık',
+                  message: 'Kaydedilmemiş değişiklikler var, çıkmak istediğinize emin misiniz?',
+                  confirmText: 'Evet, Çık',
+                  cancelText: 'Vazgeç'
+                }).then(res => res && onClose());
+              } else {
+                onClose();
+              }
+            }}
+            disabled={isSubmitting}
+          >
+            İptal
+          </button>
+          <button
+            type="submit"
+            form="workgroup-form"
+            className={drawerStyles.btnSave}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
+          </button>
+        </>
+      }
+    >
+      {globalError && <div className={styles.globalError}>{globalError}</div>}
+      
+      <form id="workgroup-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div className={styles.row}>
+          <FormInput
+            label="Grup Adı"
+            value={name}
+            onChange={handleChange(setName)}
+            placeholder="Örn. Standart Ekip"
+            error={fieldErrors.name}
+          />
+          <FormInput
+            label="Günlük Çalışma (dk)"
+            type="number"
+            min="1"
+            value={dailyWorkMinutes}
+            onChange={handleChange(setDailyWorkMinutes)}
+            error={fieldErrors.dailyWorkMinutes}
+          />
         </div>
 
-        <div className={styles.body} style={{ minHeight: 0 }}>
-          {globalError && <div className={styles.globalError}>{globalError}</div>}
-          
-          <form id="workgroup-form" onSubmit={handleSubmit}>
-            <div className={styles.row}>
-              <FormInput
-                ref={firstInputRef}
-                label="Grup Adı"
-                value={name}
-                onChange={handleChange(setName)}
-                placeholder="Örn. Standart Ekip"
-                error={fieldErrors.name}
+        <div className={styles.tableContainer}>
+          <div className={styles.tableHeader}>
+            <div className={styles.tableHeaderTitle}>Vardiya Programı</div>
+            <div className={styles.applyAllContainer}>
+              <FormSelect 
+                options={shiftOptions} 
+                value={applyAllShiftId}
+                onChange={(e) => setApplyAllShiftId(e.target.value)}
+                containerStyle={{ marginBottom: 0, height: '36px' }}
               />
-              <FormInput
-                label="Günlük Çalışma (dk)"
-                type="number"
-                min="1"
-                value={dailyWorkMinutes}
-                onChange={handleChange(setDailyWorkMinutes)}
-                error={fieldErrors.dailyWorkMinutes}
-              />
+              <button type="button" className={styles.applyAllBtn} onClick={handleApplyAll}>
+                Tümüne Uygula
+              </button>
             </div>
+          </div>
 
-            <div className={styles.tableContainer}>
-              <div className={styles.tableHeader}>
-                <div className={styles.tableHeaderTitle}>Vardiya Programı</div>
-                <div className={styles.applyAllContainer}>
-                  <FormSelect 
-                    options={shiftOptions} 
-                    value={applyAllShiftId}
-                    onChange={(e) => setApplyAllShiftId(e.target.value)}
-                    containerStyle={{ marginBottom: 0, height: '36px' }}
+          {DAYS_OF_WEEK.map(day => {
+            const shiftId = days[day.id];
+            const shift = shifts.find(s => s.id === shiftId);
+            
+            return (
+              <div key={day.id} className={styles.dayRow}>
+                <div className={styles.dayName}>{day.name}</div>
+                <div className={styles.daySelect}>
+                  <FormSelect
+                    options={shiftOptions}
+                    value={shiftId ? String(shiftId) : ''}
+                    onChange={(e) => handleDayChange(day.id, e.target.value)}
+                    containerStyle={{ marginBottom: 0 }}
                   />
-                  <button type="button" className={styles.applyAllBtn} onClick={handleApplyAll}>
-                    Tümüne Uygula
-                  </button>
+                </div>
+                <div className={styles.dayInfo}>
+                  {shift ? (
+                    <>
+                      {shift.startTime.substring(0, 5)} — {shift.endTime.substring(0, 5)}
+                      {shift.crossesMidnight && <span className={styles.nightBadge}>Gece</span>}
+                    </>
+                  ) : (
+                    <span>Çalışılmıyor</span>
+                  )}
                 </div>
               </div>
-
-              {DAYS_OF_WEEK.map(day => {
-                const shiftId = days[day.id];
-                const shift = shifts.find(s => s.id === shiftId);
-                
-                return (
-                  <div key={day.id} className={styles.dayRow}>
-                    <div className={styles.dayName}>{day.name}</div>
-                    <div className={styles.daySelect}>
-                      <FormSelect
-                        options={shiftOptions}
-                        value={shiftId ? String(shiftId) : ''}
-                        onChange={(e) => handleDayChange(day.id, e.target.value)}
-                        containerStyle={{ marginBottom: 0 }}
-                      />
-                    </div>
-                    <div className={styles.dayInfo}>
-                      {shift ? (
-                        <>
-                          {shift.startTime.substring(0, 5)} – {shift.endTime.substring(0, 5)}
-                          {shift.crossesMidnight && <span className={styles.nightBadge}>Gece</span>}
-                        </>
-                      ) : (
-                        <span>Çalışılmıyor</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-          </form>
+            );
+          })}
         </div>
-
-        <div className={styles.footer}>
-          <div>
-            {isEdit && (
-              <button
-                type="button"
-                className={styles.btnDelete}
-                onClick={handleDelete}
-                disabled={isSubmitting}
-              >
-                Grubu Sil
-              </button>
-            )}
-          </div>
-          <div className={styles.footerRight}>
-            <button
-              type="button"
-              className={styles.btnCancel}
-              onClick={handleCloseRequest}
-              disabled={isSubmitting}
-            >
-              İptal
-            </button>
-            <button
-              type="submit"
-              form="workgroup-form"
-              className={styles.btnSave}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+      </form>
+    </Drawer>
   );
 }

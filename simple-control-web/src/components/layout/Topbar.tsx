@@ -7,7 +7,9 @@ const routeMappings: Record<string, { group: string; title: string }> = {
   '/shifts': { group: 'Tanımlar', title: 'Vardiyalar' },
   '/work-groups': { group: 'Tanımlar', title: 'Çalışma Grupları' },
   '/holidays': { group: 'Tanımlar', title: 'Tatiller' },
+  '/scans': { group: 'İşlemler', title: 'Hareket Kayıtları' },
   '/reports/daily': { group: 'Raporlar', title: 'Günlük Rapor' },
+  '/reports/monthly': { group: 'Raporlar', title: 'Aylık Puantaj' },
   '/styleguide': { group: 'Sistem', title: 'Tasarım Sistemi' }
 };
 
@@ -15,7 +17,15 @@ export default function Topbar() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const routeInfo = routeMappings[location.pathname] || { group: '', title: '' };
+  let routeInfo = routeMappings[location.pathname];
+  
+  if (!routeInfo && location.pathname.startsWith('/reports/monthly/')) {
+    routeInfo = { group: 'Raporlar', title: 'Aylık Puantaj Detayı' };
+  }
+  
+  if (!routeInfo) {
+    routeInfo = { group: '', title: '' };
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token');
