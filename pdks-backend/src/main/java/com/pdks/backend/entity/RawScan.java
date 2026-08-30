@@ -31,13 +31,13 @@ public class RawScan {
     @Column(name = "scanned_at", nullable = false)
     private LocalDateTime scannedAt;
 
-    @Column(nullable = false)
+    @Column(name = "latitude")
     private Double latitude;
 
-    @Column(nullable = false)
+    @Column(name = "longitude")
     private Double longitude;
 
-    @Column(name = "mock_location", nullable = false)
+    @Column(name = "mock_location")
     private Boolean mockLocation;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,6 +61,9 @@ public class RawScan {
 
     @Column(name = "client_id", length = 100)
     private String clientId;
+
+    @Column(name = "created_by", length = 100)
+    private String createdBy;
 
     @Column(name = "manual_note", length = 500)
     private String manualNote;

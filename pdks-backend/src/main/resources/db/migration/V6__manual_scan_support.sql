@@ -1,0 +1,5 @@
+ALTER TABLE raw_scans ALTER COLUMN latitude DROP NOT NULL;
+ALTER TABLE raw_scans ALTER COLUMN longitude DROP NOT NULL;
+ALTER TABLE raw_scans ALTER COLUMN mock_location DROP NOT NULL;
+
+ALTER TABLE raw_scans ADD COLUMN created_by VARCHAR(100);
