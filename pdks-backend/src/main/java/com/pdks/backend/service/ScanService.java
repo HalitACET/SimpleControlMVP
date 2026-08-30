@@ -134,7 +134,6 @@ public class ScanService {
                 .suspicious(validation.isSuspicious())
                 .suspiciousReason(validation.getReason())
                 .clientId(request.getClientId())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         return rawScanRepository.save(rawScan);

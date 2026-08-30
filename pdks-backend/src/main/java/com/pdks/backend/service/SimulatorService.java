@@ -155,7 +155,6 @@ public class SimulatorService {
                 .qrContent(method == TransactionMethod.QR ? "SIM_QR" : null)
                 .suspicious(suspicious)
                 .suspiciousReason(reason)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         rawScanRepository.save(scan);

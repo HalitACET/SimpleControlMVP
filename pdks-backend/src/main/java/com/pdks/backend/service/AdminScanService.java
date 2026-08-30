@@ -63,7 +63,6 @@ public class AdminScanService {
                 .clientId(null)
                 .manualNote(request.getManualNote())
                 .createdBy(admin.getUsername())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         rawScan = rawScanRepository.save(rawScan);

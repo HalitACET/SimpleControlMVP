@@ -26,4 +26,12 @@ public class Holiday {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    @Column(name = "created_at")
+    private java.time.LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = java.time.LocalDateTime.now();
+    }
 }

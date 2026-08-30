@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .requestMatchers("/error").permitAll()
                 // Admin yolları sadece ADMIN rolüne açık
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/dev/**").hasRole("ADMIN")
                 // Diğer tüm istekler JWT gerektirir
                 .anyRequest().authenticated()
             )

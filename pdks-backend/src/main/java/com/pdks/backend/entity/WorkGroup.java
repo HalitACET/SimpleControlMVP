@@ -2,7 +2,6 @@ package com.pdks.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,9 +33,13 @@ public class WorkGroup {
     @Builder.Default
     private boolean active = true;
 
-    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     @OneToMany(mappedBy = "workGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
