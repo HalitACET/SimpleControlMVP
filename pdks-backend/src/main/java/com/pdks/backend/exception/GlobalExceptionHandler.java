@@ -81,6 +81,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 409 DUPLICATE_USERNAME — aynı firmada kullanıcı adı çakışması
+     */
+    @ExceptionHandler(DuplicateUsernameException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateUsername(DuplicateUsernameException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_USERNAME");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * 409 DUPLICATE_EMPLOYEE_ACCOUNT — aynı personele ikinci hesap açılmaya çalışıldığında
+     */
+    @ExceptionHandler(DuplicateEmployeeAccountException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateEmployeeAccount(DuplicateEmployeeAccountException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_EMPLOYEE_ACCOUNT");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
      * 409 DUPLICATE_SHIFT_NAME
      */
     @ExceptionHandler(DuplicateShiftNameException.class)
