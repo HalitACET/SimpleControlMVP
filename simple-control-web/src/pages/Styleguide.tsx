@@ -1,4 +1,3 @@
-import React from 'react';
 
 const colors = [
   { name: '--color-bg-page', value: '#F2F0EB' },
@@ -161,3 +160,4 @@ export default function Styleguide() {
     </div>
   );
 }
+

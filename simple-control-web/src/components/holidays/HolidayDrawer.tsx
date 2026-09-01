@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { X } from 'lucide-react';
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
@@ -181,3 +181,4 @@ export default function HolidayDrawer({ isOpen, onClose, onSuccess }: HolidayDra
     </>
   );
 }
+
