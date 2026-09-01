@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './Topbar.module.css';
 
@@ -10,6 +9,7 @@ const routeMappings: Record<string, { group: string; title: string }> = {
   '/scans': { group: 'İşlemler', title: 'Hareket Kayıtları' },
   '/reports/daily': { group: 'Raporlar', title: 'Günlük Rapor' },
   '/reports/monthly': { group: 'Raporlar', title: 'Aylık Puantaj' },
+  '/users': { group: 'Sistem', title: 'Kullanıcı Hesapları' },
   '/styleguide': { group: 'Sistem', title: 'Tasarım Sistemi' }
 };
 
@@ -48,3 +48,4 @@ export default function Topbar() {
     </header>
   );
 }
+

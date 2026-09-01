@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Users, Cpu, MapPin, Clock, CalendarDays, FileText, Palette, ChevronsLeft, ChevronsRight, Layers, Sun } from 'lucide-react';
+import { Users, Cpu, MapPin, Clock, CalendarDays, FileText, Palette, ChevronsLeft, ChevronsRight, Layers, Sun, UserCog } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar() {
@@ -42,6 +42,7 @@ export default function Sidebar() {
     {
       label: 'Sistem',
       items: [
+        { label: 'Kullanıcı Hesapları', path: '/users', icon: <UserCog size={18} /> },
         { label: 'Tasarım Sistemi', path: '/styleguide', icon: <Palette size={18} /> },
       ],
     },
@@ -93,3 +94,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+

@@ -6,6 +6,7 @@ import Shifts from './pages/Shifts';
 import WorkGroups from './pages/WorkGroups';
 import Holidays from './pages/Holidays';
 import Scans from './pages/Scans';
+import UserAccounts from './pages/UserAccounts';
 import DailyReport from './pages/DailyReport';
 import MonthlyReport from './pages/MonthlyReport';
 import MonthlyReportDetail from './pages/MonthlyReportDetail';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/work-groups" element={<WorkGroups />} />
             <Route path="/holidays" element={<Holidays />} />
             <Route path="/scans" element={<Scans />} />
+            <Route path="/users" element={<UserAccounts />} />
             <Route path="/reports/daily" element={<DailyReport />} />
             <Route path="/reports/monthly" element={<MonthlyReport />} />
             <Route path="/reports/monthly/:employeeId" element={<MonthlyReportDetail />} />
