@@ -61,7 +61,7 @@ public class AdminReportService {
         List<DailyReportResponse> responses = new ArrayList<>();
 
         for (Employee emp : employees) {
-            List<RawScan> scans = rawScanRepository.findAdminScans(firmId, startSearch, endSearch, emp.getId(), null, null);
+            List<RawScan> scans = rawScanRepository.findAdminScans(firmId, startSearch, endSearch, emp.getId(), null, null, null);
             var dtos = calculationService.calculate(emp, date, date, firmHolidays, scans);
             if (!dtos.isEmpty()) {
                 var dto = dtos.get(0);
@@ -109,7 +109,7 @@ public class AdminReportService {
         LocalDateTime endSearch = endDate.plusDays(2).atStartOfDay();
 
         // N+1 onlemek icin tek sorguda tum personelin okutmalari cekilir
-        List<RawScan> allScans = rawScanRepository.findAdminScans(firmId, startSearch, endSearch, employeeId, departmentId, null);
+        List<RawScan> allScans = rawScanRepository.findAdminScans(firmId, startSearch, endSearch, employeeId, departmentId, null, null);
         java.util.Map<Long, List<RawScan>> scansByEmployee = allScans.stream()
                 .collect(Collectors.groupingBy(s -> s.getEmployee().getId()));
 
@@ -208,7 +208,7 @@ public class AdminReportService {
         LocalDateTime startSearch = startDate.minusDays(1).atStartOfDay();
         LocalDateTime endSearch = endDate.plusDays(2).atStartOfDay();
 
-        List<RawScan> scans = rawScanRepository.findAdminScans(firmId, startSearch, endSearch, employeeId, null, null);
+        List<RawScan> scans = rawScanRepository.findAdminScans(firmId, startSearch, endSearch, employeeId, null, null, null);
         List<com.pdks.backend.dto.DailyAttendanceDto> dtos = calculationService.calculate(emp, startDate, endDate, firmHolidays, scans);
 
         List<DailyReportResponse> responses = new ArrayList<>();

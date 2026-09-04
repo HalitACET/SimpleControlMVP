@@ -18,7 +18,7 @@ public class DailyReportResponse extends DailyAttendanceDto {
         super(dto.getDate(), dto.getDayOfWeek(), dto.getStatus(), dto.getShiftName(), dto.getShiftStartTime(), 
               dto.getShiftEndTime(), dto.getEntryTime(), dto.getExitTime(), dto.getWorkedMinutes(), 
               dto.getLateMinutes(), dto.getEarlyExitMinutes(), dto.getTotalMissingMinutes(), dto.getOvertimeMinutes(), 
-              dto.getScanCount(), dto.getSuspiciousScanCount(), dto.isNightShift());
+              dto.getScanCount(), dto.getSuspiciousScanCount(), dto.getExcludedScanCount(), dto.isNightShift());
         this.employeeId = employeeId;
         this.employeeName = employeeName;
         this.cardNo = cardNo;

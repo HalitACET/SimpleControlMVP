@@ -78,7 +78,10 @@ public class AttendanceCalculationService {
             }
 
             if (bestWindow != null) {
-                if (Boolean.TRUE.equals(scan.getSuspicious())) {
+                bestWindow.setTotalScanCount(bestWindow.getTotalScanCount() + 1);
+                if (Boolean.TRUE.equals(scan.getExcluded())) {
+                    bestWindow.setExcludedScanCount(bestWindow.getExcludedScanCount() + 1);
+                } else if (Boolean.TRUE.equals(scan.getSuspicious())) {
                     bestWindow.setSuspiciousScanCount(bestWindow.getSuspiciousScanCount() + 1);
                 } else {
                     bestWindow.getValidScans().add(scan);
@@ -141,7 +144,8 @@ public class AttendanceCalculationService {
             }
         }
 
-        builder.scanCount(filtered.size());
+        builder.scanCount(w.getTotalScanCount());
+        builder.excludedScanCount(w.getExcludedScanCount());
 
         if (filtered.isEmpty()) {
             if (builder.build().getStatus() == null) {

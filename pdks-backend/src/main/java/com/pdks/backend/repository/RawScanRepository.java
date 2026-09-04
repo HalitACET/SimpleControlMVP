@@ -19,6 +19,7 @@ public interface RawScanRepository extends JpaRepository<RawScan, Long> {
            "AND (:employeeId IS NULL OR r.employee.id = :employeeId) " +
            "AND (:departmentId IS NULL OR r.employee.department.id = :departmentId) " +
            "AND (:suspiciousOnly IS NULL OR :suspiciousOnly = false OR r.suspicious = true) " +
+           "AND (:excludedOnly IS NULL OR :excludedOnly = false OR r.excluded = true) " +
            "ORDER BY r.scannedAt DESC")
     java.util.List<RawScan> findAdminScans(
             @org.springframework.data.repository.query.Param("firmId") String firmId,
@@ -26,5 +27,6 @@ public interface RawScanRepository extends JpaRepository<RawScan, Long> {
             @org.springframework.data.repository.query.Param("end") LocalDateTime end,
             @org.springframework.data.repository.query.Param("employeeId") Long employeeId,
             @org.springframework.data.repository.query.Param("departmentId") Long departmentId,
-            @org.springframework.data.repository.query.Param("suspiciousOnly") Boolean suspiciousOnly);
+            @org.springframework.data.repository.query.Param("suspiciousOnly") Boolean suspiciousOnly,
+            @org.springframework.data.repository.query.Param("excludedOnly") Boolean excludedOnly);
 }

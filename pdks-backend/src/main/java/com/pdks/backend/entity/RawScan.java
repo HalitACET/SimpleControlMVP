@@ -65,6 +65,19 @@ public class RawScan {
     @Column(name = "created_by", length = 100)
     private String createdBy;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean excluded = false;
+
+    @Column(name = "excluded_reason", length = 255)
+    private String excludedReason;
+
+    @Column(name = "excluded_by", length = 100)
+    private String excludedBy;
+
+    @Column(name = "excluded_at")
+    private LocalDateTime excludedAt;
+
     @Column(name = "manual_note", length = 500)
     private String manualNote;
 

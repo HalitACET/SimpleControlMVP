@@ -25,5 +25,6 @@ public class DailyAttendanceDto {
     private Integer overtimeMinutes;
     private int scanCount;
     private int suspiciousScanCount;
+    private int excludedScanCount;
     private boolean isNightShift;
 }

@@ -69,13 +69,55 @@ public class AdminScanService {
         return mapToResponse(rawScan);
     }
 
-    public List<AdminScanResponse> getScans(String authHeader, Long employeeId, LocalDate startDate, LocalDate endDate, Boolean suspiciousOnly, Long departmentId) {
+    public AdminScanResponse excludeScan(String authHeader, Long id, com.pdks.backend.dto.ExcludeScanRequest request) {
+        User admin = getUserFromToken(authHeader);
+        RawScan scan = rawScanRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Okutma bulunamadi."));
+
+        if (!scan.getEmployee().getFirmId().equals(admin.getFirmId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Okutma bulunamadi.");
+        }
+        if (Boolean.TRUE.equals(scan.getExcluded())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Okutma zaten iptal edilmis.");
+        }
+
+        scan.setExcluded(true);
+        scan.setExcludedReason(request.getReason());
+        scan.setExcludedBy(admin.getUsername());
+        scan.setExcludedAt(LocalDateTime.now());
+        
+        scan = rawScanRepository.save(scan);
+        return mapToResponse(scan);
+    }
+
+    public AdminScanResponse includeScan(String authHeader, Long id) {
+        User admin = getUserFromToken(authHeader);
+        RawScan scan = rawScanRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Okutma bulunamadi."));
+
+        if (!scan.getEmployee().getFirmId().equals(admin.getFirmId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Okutma bulunamadi.");
+        }
+        if (!Boolean.TRUE.equals(scan.getExcluded())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Okutma iptal edilmemis.");
+        }
+
+        scan.setExcluded(false);
+        scan.setExcludedReason(null);
+        scan.setExcludedBy(null);
+        scan.setExcludedAt(null);
+        
+        scan = rawScanRepository.save(scan);
+        return mapToResponse(scan);
+    }
+
+    public List<AdminScanResponse> getScans(String authHeader, Long employeeId, LocalDate startDate, LocalDate endDate, Boolean suspiciousOnly, Long departmentId, Boolean excludedOnly) {
         User admin = getUserFromToken(authHeader);
 
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.plusDays(1).atStartOfDay();
 
-        List<RawScan> scans = rawScanRepository.findAdminScans(admin.getFirmId(), start, end, employeeId, departmentId, suspiciousOnly);
+        List<RawScan> scans = rawScanRepository.findAdminScans(admin.getFirmId(), start, end, employeeId, departmentId, suspiciousOnly, excludedOnly);
         return scans.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
@@ -91,6 +133,10 @@ public class AdminScanService {
                 .suspiciousReason(scan.getSuspiciousReason())
                 .manualNote(scan.getManualNote())
                 .createdBy(scan.getCreatedBy())
+                .excluded(Boolean.TRUE.equals(scan.getExcluded()))
+                .excludedReason(scan.getExcludedReason())
+                .excludedBy(scan.getExcludedBy())
+                .excludedAt(scan.getExcludedAt())
                 .build();
     }
 

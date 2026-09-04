@@ -20,4 +20,8 @@ public class AdminScanResponse {
     private SuspiciousReason suspiciousReason;
     private String manualNote;
     private String createdBy;
+    private boolean excluded;
+    private String excludedReason;
+    private String excludedBy;
+    private LocalDateTime excludedAt;
 }

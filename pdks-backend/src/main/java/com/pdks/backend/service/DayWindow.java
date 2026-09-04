@@ -26,6 +26,8 @@ public class DayWindow {
     
     @Getter private List<RawScan> validScans = new ArrayList<>();
     @Getter @Setter private int suspiciousScanCount = 0;
+    @Getter @Setter private int excludedScanCount = 0;
+    @Getter @Setter private int totalScanCount = 0;
 
     public DayWindow(LocalDate date, WorkGroup workGroup, boolean isHoliday) {
         this.date = date;

@@ -28,6 +28,21 @@ public class AdminScanController {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminScanService.createManualScan(authHeader, request));
     }
 
+    @PutMapping("/{id}/exclude")
+    public ResponseEntity<AdminScanResponse> excludeScan(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+            @PathVariable Long id,
+            @Valid @RequestBody com.pdks.backend.dto.ExcludeScanRequest request) {
+        return ResponseEntity.ok(adminScanService.excludeScan(authHeader, id, request));
+    }
+
+    @PutMapping("/{id}/include")
+    public ResponseEntity<AdminScanResponse> includeScan(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+            @PathVariable Long id) {
+        return ResponseEntity.ok(adminScanService.includeScan(authHeader, id));
+    }
+
     @GetMapping
     public ResponseEntity<List<AdminScanResponse>> getScans(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
@@ -35,7 +50,8 @@ public class AdminScanController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) Boolean suspiciousOnly,
-            @RequestParam(required = false) Long departmentId) {
-        return ResponseEntity.ok(adminScanService.getScans(authHeader, employeeId, startDate, endDate, suspiciousOnly, departmentId));
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Boolean excludedOnly) {
+        return ResponseEntity.ok(adminScanService.getScans(authHeader, employeeId, startDate, endDate, suspiciousOnly, departmentId, excludedOnly));
     }
 }
