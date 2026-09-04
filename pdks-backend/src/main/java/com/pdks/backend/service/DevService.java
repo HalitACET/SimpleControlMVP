@@ -45,7 +45,7 @@ public class DevService {
         stats.put("deletedWorkGroupDays", em.createQuery("DELETE FROM WorkGroupDay wgd WHERE wgd.workGroup.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
         stats.put("deletedWorkGroups", em.createQuery("DELETE FROM WorkGroup wg WHERE wg.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
         stats.put("deletedDepartments", em.createQuery("DELETE FROM Department d WHERE d.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
-        stats.put("nullifiedUserShifts", em.createQuery("UPDATE User u SET u.shift = null WHERE u.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
+
         stats.put("deletedShifts", em.createQuery("DELETE FROM Shift s WHERE s.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
         stats.put("deletedHolidays", em.createQuery("DELETE FROM Holiday h WHERE h.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
         

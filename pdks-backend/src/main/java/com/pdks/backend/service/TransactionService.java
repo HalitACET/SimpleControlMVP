@@ -54,21 +54,9 @@ public class TransactionService {
                     .build();
         }
 
-        NextActionResponse.ShiftInfo shiftInfo = null;
-        if (user.getShift() != null) {
-            Shift shift = user.getShift();
-            DateTimeFormatter hmFormatter = DateTimeFormatter.ofPattern("HH:mm");
-            shiftInfo = NextActionResponse.ShiftInfo.builder()
-                    .name(shift.getName())
-                    .startTime(shift.getStartTime().format(hmFormatter))
-                    .endTime(shift.getEndTime().format(hmFormatter))
-                    .build();
-        }
-
         return NextActionResponse.builder()
                 .suggestedType(suggestedType)
                 .lastTransaction(lastInfo)
-                .shift(shiftInfo)
                 .build();
     }
 

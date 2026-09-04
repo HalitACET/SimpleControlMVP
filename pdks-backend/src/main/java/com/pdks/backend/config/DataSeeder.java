@@ -52,22 +52,13 @@ public class DataSeeder implements CommandLineRunner {
                     .startTime(LocalTime.of(8, 0))
                     .endTime(LocalTime.of(17, 0))
                     .breakMinutes(60)
+                    .earlyExitToleranceMinutes(10)
                     .lateToleranceMinutes(10)
                     .active(true)
                     .build();
             gündüz = shiftRepository.save(gündüz);
             log.info("Shift seed: Gündüz");
         }
-
-        final Shift finalGündüz = gündüz;
-        userRepository.findByUsernameAndFirmId("mehmet.yilmaz", "ATLAS01")
-                .ifPresent(u -> {
-                    if (u.getShift() == null) {
-                        u.setShift(finalGündüz);
-                        userRepository.save(u);
-                        log.info("Assigned Gündüz shift to mehmet.yilmaz");
-                    }
-                });
     }
 
     /** EMPLOYEE test kullanıcısı — yoksa oluştur */
