@@ -25,8 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByFirmId(String firmId);
 
-    @Query("SELECT u FROM User u WHERE u.firmId = :firmId AND " +
-           "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%'))")
+    @Query("SELECT u FROM User u LEFT JOIN u.employee e WHERE u.firmId = :firmId AND (" +
+           "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.lastName) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<User> searchUsers(@Param("firmId") String firmId, @Param("search") String search);
 
     long countByFirmIdAndActiveTrue(String firmId);

@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 public class EmployeeResponse {
 
     private Long id;
-    private String firmId;
     private String firstName;
     private String lastName;
     private String cardNo;

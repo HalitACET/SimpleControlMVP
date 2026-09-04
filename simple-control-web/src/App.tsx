@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { setNavigate } from './api/navigateHelper';
 import Login from './pages/Login';
 import Employees from './pages/Employees';
 
@@ -18,6 +20,13 @@ import AppLayout from './components/layout/AppLayout';
 import { ToastProvider } from './components/ui/toast/ToastContext';
 import { ConfirmProvider } from './components/ui/confirm/ConfirmDialogContext';
 
+/** BrowserRouter altında çalışıp navigate referansını modül dışına taşır. */
+function NavigateInjector() {
+  const nav = useNavigate();
+  useEffect(() => { setNavigate(nav); }, [nav]);
+  return null;
+}
+
 function App() {
   const token = localStorage.getItem('token');
 
@@ -25,6 +34,7 @@ function App() {
     <ToastProvider>
       <ConfirmProvider>
         <BrowserRouter>
+          <NavigateInjector />
           <Routes>
             <Route path="/login" element={<Login />} />
           

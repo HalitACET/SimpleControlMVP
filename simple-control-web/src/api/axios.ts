@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { navigateTo } from './navigateHelper';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -26,7 +27,7 @@ api.interceptors.response.use(
       const isLoginRequest = error.config && error.config.url && error.config.url.endsWith('/auth/login');
       if (!isLoginRequest) {
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        navigateTo('/login');
       }
     }
     return Promise.reject(error);
