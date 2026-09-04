@@ -13,6 +13,7 @@ interface DailyReportRow {
   employeeName: string;
   cardNo: string;
   workGroupName: string;
+  departmentName?: string;
   date: string;
   dayOfWeek: number;
   status: string;
@@ -41,6 +42,8 @@ const getLocalDateString = (d: Date) => {
 export default function DailyReport() {
   const [date, setDate] = useState(getLocalDateString(new Date()));
   const [employeeId, setEmployeeId] = useState('');
+  const [departmentId, setDepartmentId] = useState('');
+  const [departments, setDepartments] = useState<{value: string, label: string}[]>([]);
   
   const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
   const [data, setData] = useState<DailyReportRow[]>([]);
@@ -50,11 +53,21 @@ export default function DailyReport() {
 
   useEffect(() => {
     fetchEmployees();
+    fetchDepartments();
   }, []);
 
   useEffect(() => {
     fetchData();
-  }, [date, employeeId]);
+  }, [date, employeeId, departmentId]);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await api.get('/admin/departments');
+      setDepartments(res.data.map((d: any) => ({ value: d.id.toString(), label: d.name })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -74,9 +87,9 @@ export default function DailyReport() {
     setError(null);
     try {
       let url = `/admin/reports/daily?date=${date}`;
-      if (employeeId) {
-        url += `&employeeId=${employeeId}`;
-      }
+      if (employeeId) url += `&employeeId=${employeeId}`;
+      if (departmentId) url += `&departmentId=${departmentId}`;
+      
       const res = await api.get(url);
       setData(res.data);
     } catch (err: any) {
@@ -130,11 +143,11 @@ export default function DailyReport() {
       case 'DEVAMSIZ': return <Badge variant="error">Devamsız</Badge>;
       case 'TATIL': return <Badge variant="info">Tatil</Badge>;
       case 'GRUP_ATANMAMIS': return <Badge variant="neutral">Grup Yok</Badge>;
+      case 'GELECEK': return <Badge variant="neutral">—</Badge>;
       default: return <Badge variant="neutral">{status}</Badge>;
     }
   };
 
-  // Summary calc
   const summary = {
     attended: data.filter(d => d.entryTime).length,
     late: data.filter(d => d.lateMinutes > 0).length,
@@ -161,13 +174,23 @@ export default function DailyReport() {
           </button>
         </div>
         
-        <div style={{ width: '250px' }}>
-          <FormSelect
-            label="Personel"
-            options={employees}
-            value={employeeId}
-            onChange={e => setEmployeeId(e.target.value)}
-          />
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <div style={{ minWidth: '220px' }}>
+            <FormSelect
+              label="Departman"
+              options={[{ value: '', label: 'Tüm Departmanlar' }, ...departments]}
+              value={departmentId}
+              onChange={e => setDepartmentId(e.target.value)}
+            />
+          </div>
+          <div style={{ minWidth: '220px' }}>
+            <FormSelect
+              label="Personel"
+              options={employees}
+              value={employeeId}
+              onChange={e => setEmployeeId(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
@@ -196,68 +219,100 @@ export default function DailyReport() {
         ) : loading ? (
           <div className={tableStyles.emptyState}>Yükleniyor...</div>
         ) : data.length === 0 ? (
-          <div className={tableStyles.emptyState}>Bu tarih için rapor verisi bulunamadı.</div>
+          <div className={tableStyles.emptyState}>Bu tarih için rapor bulunamadı.</div>
         ) : (
-          <table className={tableStyles.table}>
-            <thead className={tableStyles.thead}>
-              <tr>
-                <th className={tableStyles.th}>Personel</th>
-                <th className={tableStyles.th} style={{ width: '100px' }}>Kart No</th>
-                <th className={tableStyles.th} style={{ width: '120px', textAlign: 'right' }}>Vardiya</th>
-                <th className={tableStyles.th} style={{ width: '80px', textAlign: 'right' }}>Giriş</th>
-                <th className={tableStyles.th} style={{ width: '80px', textAlign: 'right' }}>Çıkış</th>
-                <th className={tableStyles.th} style={{ width: '100px', textAlign: 'right' }}>Çalışılan</th>
-                <th className={tableStyles.th} style={{ width: '80px', textAlign: 'right' }}>Geç</th>
-                <th className={tableStyles.th} style={{ width: '100px', textAlign: 'right' }}>Erken Çıkış</th>
-                <th className={tableStyles.th} style={{ width: '130px' }}>Durum</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((row) => (
-                <tr key={row.employeeId} className={tableStyles.tr}>
-                  <td className={tableStyles.tdPrimary}>
-                    {row.employeeName}
-                    {row.suspiciousScanCount > 0 && (
-                      <span className={styles.suspiciousIcon} title={`${row.suspiciousScanCount} şüpheli okutma tespit edildi`}>
-                        <AlertTriangle size={16} />
-                      </span>
-                    )}
-                  </td>
-                  <td className={tableStyles.td}>{row.cardNo}</td>
-                  <td className={tableStyles.td} style={{ textAlign: 'right' }}>{row.shiftName || '—'}</td>
-                  
-                  <td className={tableStyles.td} style={{ textAlign: 'right' }}>
-                    <div className={styles.timeCell} style={{ justifyContent: 'flex-end' }}>
-                      {formatTime(row.entryTime)}
-                    </div>
-                  </td>
-                  
-                  <td className={tableStyles.td} style={{ textAlign: 'right' }}>
-                    <div className={styles.timeCell} style={{ justifyContent: 'flex-end' }}>
-                      {formatTime(row.exitTime)}
-                      {isNextDay(row.exitTime, row.date) && <span className={tableStyles.nightBadge} title="Ertesi gün">+1</span>}
-                    </div>
-                  </td>
-                  
-                  <td className={tableStyles.td} style={{ textAlign: 'right' }}>{formatDuration(row.workedMinutes)}</td>
-                  
-                  <td className={tableStyles.td} style={{ textAlign: 'right' }}>
-                    {row.lateMinutes > 0 
-                      ? <span className={styles.warningText}>{formatDuration(row.lateMinutes)}</span> 
-                      : <span className={styles.mutedText}>—</span>}
-                  </td>
-                  
-                  <td className={tableStyles.td} style={{ textAlign: 'right' }}>
-                    {row.earlyExitMinutes > 0 
-                      ? <span className={styles.warningText}>{formatDuration(row.earlyExitMinutes)}</span> 
-                      : <span className={styles.mutedText}>—</span>}
-                  </td>
-                  
-                  <td className={tableStyles.td}>{getStatusBadge(row.status)}</td>
+          <div className={tableStyles.tableWrapper}>
+            <table className={tableStyles.table}>
+              <thead className={tableStyles.thead}>
+                <tr>
+                  <th className={tableStyles.th}>Personel</th>
+                  <th className={tableStyles.th}>Departman</th>
+                  <th className={tableStyles.th} style={{ width: '100px' }}>Kart No</th>
+                  <th className={tableStyles.th}>Çalışma Grubu</th>
+                  <th className={tableStyles.th} style={{ width: '100px' }}>Durum</th>
+                  <th className={tableStyles.th} style={{ width: '100px' }}>Vardiya</th>
+                  <th className={tableStyles.th} style={{ width: '100px', textAlign: 'center' }}>Giriş</th>
+                  <th className={tableStyles.th} style={{ width: '100px', textAlign: 'center' }}>Çıkış</th>
+                  <th className={tableStyles.th} style={{ width: '100px', textAlign: 'right' }}>Çalışma</th>
+                  <th className={tableStyles.th} style={{ width: '100px', textAlign: 'right' }}>Geç (dk)</th>
+                  <th className={tableStyles.th} style={{ width: '100px', textAlign: 'right' }}>Erken Çıkış (dk)</th>
+                  <th className={tableStyles.th} style={{ width: '100px', textAlign: 'right' }}>Fazla Mesai (dk)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.map((row) => (
+                  <tr key={row.employeeId} className={tableStyles.tr}>
+                    <td className={tableStyles.td}>
+                      <div className={tableStyles.cellContent}>
+                        <span className={tableStyles.primaryText}>{row.employeeName}</span>
+                      </div>
+                    </td>
+                    <td className={tableStyles.td}>
+                      <div className={tableStyles.cellContent}>
+                        {row.departmentName ? (
+                          <span className={tableStyles.primaryText}>{row.departmentName}</span>
+                        ) : (
+                          <span className={tableStyles.secondaryText}>—</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className={tableStyles.td}>
+                      <span className={tableStyles.secondaryText}>{row.cardNo}</span>
+                    </td>
+                    <td className={tableStyles.td}>
+                      <span className={tableStyles.secondaryText}>{row.workGroupName || '—'}</span>
+                    </td>
+                    <td className={tableStyles.td}>{getStatusBadge(row.status)}</td>
+                    <td className={tableStyles.td}>
+                      {row.shiftName ? (
+                        <div className={tableStyles.cellContent}>
+                          <span className={tableStyles.primaryText}>{row.shiftName}</span>
+                          <span className={tableStyles.secondaryText}>
+                            {formatTime(row.shiftStartTime)} - {formatTime(row.shiftEndTime)}
+                            {row.nightShift && ' (Gece)'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className={tableStyles.secondaryText}>—</span>
+                      )}
+                    </td>
+                    <td className={tableStyles.td} style={{ textAlign: 'center' }}>
+                      <span className={tableStyles.primaryText}>{formatTime(row.entryTime)}</span>
+                      {row.suspiciousScanCount > 0 && row.entryTime && (
+                        <span title="Şüpheli okutma tespit edildi" style={{ display: 'inline', marginLeft: '4px' }}>
+                          <AlertTriangle size={14} className="text-warning" />
+                        </span>
+                      )}
+                    </td>
+                    <td className={tableStyles.td} style={{ textAlign: 'center' }}>
+                      <span className={tableStyles.primaryText}>{formatTime(row.exitTime)}</span>
+                      {isNextDay(row.exitTime, date) && (
+                        <span className={tableStyles.secondaryText} style={{ display: 'block', fontSize: '0.75rem' }}>Ertesi gün</span>
+                      )}
+                    </td>
+                    <td className={tableStyles.td} style={{ textAlign: 'right' }}>
+                      <span className={tableStyles.primaryText}>{formatDuration(row.workedMinutes)}</span>
+                    </td>
+                    <td className={tableStyles.td} style={{ textAlign: 'right' }}>
+                      <span className={row.lateMinutes > 0 ? 'text-warning font-medium' : tableStyles.secondaryText}>
+                        {row.lateMinutes > 0 ? `${row.lateMinutes}dk` : '—'}
+                      </span>
+                    </td>
+                    <td className={tableStyles.td} style={{ textAlign: 'right' }}>
+                      <span className={row.earlyExitMinutes > 0 ? 'text-warning font-medium' : tableStyles.secondaryText}>
+                        {row.earlyExitMinutes > 0 ? `${row.earlyExitMinutes}dk` : '—'}
+                      </span>
+                    </td>
+                    <td className={tableStyles.td} style={{ textAlign: 'right' }}>
+                      <span className={row.overtimeMinutes > 0 ? 'text-success font-medium' : tableStyles.secondaryText}>
+                        {row.overtimeMinutes > 0 ? formatDuration(row.overtimeMinutes) : '—'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

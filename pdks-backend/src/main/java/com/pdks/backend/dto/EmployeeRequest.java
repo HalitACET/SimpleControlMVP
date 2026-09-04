@@ -30,4 +30,5 @@ public class EmployeeRequest {
     private String cardNo;
 
     private Long workGroupId;
+    private Long departmentId;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { handleApiError } from '../utils/errorHandler';
 import EmployeeDrawer from '../components/employees/EmployeeDrawer';
@@ -12,6 +12,8 @@ interface Employee {
   cardNo: string;
   workGroupId?: number;
   workGroupName?: string;
+  departmentId?: number;
+  departmentName?: string;
 }
 
 export default function Employees() {
@@ -23,6 +25,7 @@ export default function Employees() {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const fetchEmployees = async () => {
     setIsLoading(true);
@@ -45,6 +48,25 @@ export default function Employees() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && employees.length > 0) {
+      const emp = employees.find(e => e.id === Number(editId));
+      if (emp) {
+        setSelectedEmployee(emp);
+        setIsDrawerOpen(true);
+      }
+    }
+  }, [searchParams, employees]);
+
+  const handleDrawerClose = () => {
+    setIsDrawerOpen(false);
+    if (searchParams.get('edit')) {
+      searchParams.delete('edit');
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
+
   const handleNewPersonel = () => {
     setSelectedEmployee(null);
     setIsDrawerOpen(true);
@@ -56,7 +78,7 @@ export default function Employees() {
   };
 
   const handleDrawerSuccess = () => {
-    setIsDrawerOpen(false);
+    handleDrawerClose();
     fetchEmployees();
   };
 
@@ -78,15 +100,13 @@ export default function Employees() {
             borderRadius: 'var(--radius-sm)',
             background: 'var(--color-accent)',
             color: 'var(--color-text-primary)',
-            fontSize: 'var(--font-size-body)',
-            fontWeight: 'var(--font-weight-bold)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
+            fontSize: 'var(--font-size-sm)',
+            fontWeight: 600,
             cursor: 'pointer',
-            boxShadow: '0 1px 2px rgba(28,28,30,.10)'
+            transition: 'opacity 0.2s'
           }}
         >
-          ＋ Yeni Personel
+          Yeni Personel
         </button>
       </div>
 
@@ -94,50 +114,37 @@ export default function Employees() {
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
-              <th className={styles.th}>Ad Soyad</th>
-              <th className={styles.th} style={{ width: '150px' }}>Kart No</th>
-              <th className={styles.th} style={{ width: '120px' }}>Durum</th>
+                <th className={styles.th}>AD SOYAD</th>
+              <th className={styles.th}>KART NO</th>
+              <th className={styles.th}>ÇALIŞMA GRUBU</th>
+              <th className={styles.th}>DEPARTMAN</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              // SKELETON
-              Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className={styles.tr}>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '120px' }}></div></td>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '80px' }}></div></td>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '60px', borderRadius: 'var(--radius-full)' }}></div></td>
-                </tr>
-              ))
-            ) : employees.length === 0 ? (
-              // EMPTY STATE
               <tr>
-                <td colSpan={3}>
-                  <div className={styles.emptyState}>
-                    Henüz personel eklenmemiş
-                  </div>
+                <td colSpan={4} className={styles.td} style={{ textAlign: 'center' }}>
+                  Yükleniyor...
+                </td>
+              </tr>
+            ) : employees.length === 0 ? (
+              <tr>
+                <td colSpan={4} className={styles.td} style={{ textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                  Henüz personel bulunmuyor.
                 </td>
               </tr>
             ) : (
-              // DATA
-              employees.map((emp) => (
+              employees.map(emp => (
                 <tr 
                   key={emp.id} 
                   className={styles.tr}
                   onClick={() => handleEditPersonel(emp)}
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleEditPersonel(emp);
-                  }}
-                  role="button"
+                  style={{ cursor: 'pointer' }}
                 >
-                  <td className={styles.tdPrimary}>
-                    {emp.firstName} {emp.lastName}
-                  </td>
-                  <td className={styles.tdMono}>{emp.cardNo}</td>
-                  <td className={styles.td}>
-                    <span className={styles.statusBadge}>Aktif</span>
-                  </td>
+                  <td className={styles.td}>{emp.firstName} {emp.lastName}</td>
+                  <td className={styles.td} style={{ fontFamily: 'monospace' }}>{emp.cardNo}</td>
+                  <td className={styles.td}>{emp.workGroupName || <span style={{ color: 'var(--color-text-secondary)' }}>—</span>}</td>
+                  <td className={styles.td}>{emp.departmentName || <span style={{ color: 'var(--color-text-secondary)' }}>—</span>}</td>
                 </tr>
               ))
             )}
@@ -147,7 +154,7 @@ export default function Employees() {
 
       <EmployeeDrawer
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={handleDrawerClose}
         onSuccess={handleDrawerSuccess}
         employeeToEdit={selectedEmployee}
       />

@@ -11,9 +11,10 @@ public class DailyReportResponse extends DailyAttendanceDto {
     private String employeeName;
     private String cardNo;
     private String workGroupName;
+    private String departmentName;
 
     @Builder(builderMethodName = "reportBuilder")
-    public DailyReportResponse(DailyAttendanceDto dto, Long employeeId, String employeeName, String cardNo, String workGroupName) {
+    public DailyReportResponse(DailyAttendanceDto dto, Long employeeId, String employeeName, String cardNo, String workGroupName, String departmentName) {
         super(dto.getDate(), dto.getDayOfWeek(), dto.getStatus(), dto.getShiftName(), dto.getShiftStartTime(), 
               dto.getShiftEndTime(), dto.getEntryTime(), dto.getExitTime(), dto.getWorkedMinutes(), 
               dto.getLateMinutes(), dto.getEarlyExitMinutes(), dto.getTotalMissingMinutes(), dto.getOvertimeMinutes(), 
@@ -22,5 +23,6 @@ public class DailyReportResponse extends DailyAttendanceDto {
         this.employeeName = employeeName;
         this.cardNo = cardNo;
         this.workGroupName = workGroupName;
+        this.departmentName = departmentName;
     }
 }

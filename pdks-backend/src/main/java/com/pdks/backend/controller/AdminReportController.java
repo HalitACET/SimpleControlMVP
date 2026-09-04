@@ -22,8 +22,9 @@ public class AdminReportController {
     public ResponseEntity<List<DailyReportResponse>> getDailyReport(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) Long employeeId) {
-        return ResponseEntity.ok(adminReportService.getDailyReport(authHeader, date, employeeId));
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam(required = false) Long departmentId) {
+        return ResponseEntity.ok(adminReportService.getDailyReport(authHeader, date, employeeId, departmentId));
     }
 
     @GetMapping("/monthly")
@@ -31,8 +32,17 @@ public class AdminReportController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
             @RequestParam int year,
             @RequestParam int month,
-            @RequestParam(required = false) Long employeeId) {
-        return ResponseEntity.ok(adminReportService.getMonthlyReport(authHeader, year, month, employeeId));
+            @RequestParam(required = false) Long employeeId,
+            @RequestParam(required = false) Long departmentId) {
+        return ResponseEntity.ok(adminReportService.getMonthlyReport(authHeader, year, month, employeeId, departmentId));
+    }
+
+    @GetMapping("/monthly/by-department")
+    public ResponseEntity<List<com.pdks.backend.dto.DepartmentMonthlySummaryResponse>> getMonthlyReportByDepartment(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader,
+            @RequestParam int year,
+            @RequestParam int month) {
+        return ResponseEntity.ok(adminReportService.getMonthlyReportByDepartment(authHeader, year, month));
     }
 
     @GetMapping("/monthly/detail")

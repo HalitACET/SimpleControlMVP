@@ -38,6 +38,7 @@ const getStatusBadge = (status: string) => {
     case 'DEVAMSIZ': return <Badge variant="error">Devamsız</Badge>;
     case 'TATIL': return <Badge variant="info">Tatil</Badge>;
     case 'GRUP_ATANMAMIS': return <Badge variant="neutral">Grup Yok</Badge>;
+    case 'GELECEK': return <Badge variant="neutral">—</Badge>;
     default: return <Badge variant="neutral">{status}</Badge>;
   }
 };
@@ -181,12 +182,16 @@ export default function MonthlyReportDetail() {
             <tbody>
               {data.map((row) => {
                 const isWeekendOrHoliday = row.dayOfWeek === 6 || row.dayOfWeek === 7 || row.status === 'TATIL';
+                const isFuture = row.status === 'GELECEK';
                 
                 return (
                   <tr 
                     key={row.date} 
                     className={tableStyles.tr}
-                    style={isWeekendOrHoliday ? { backgroundColor: 'var(--color-surface-sunken)' } : {}}
+                    style={{
+                      ...(isWeekendOrHoliday ? { backgroundColor: 'var(--color-surface-sunken)' } : {}),
+                      ...(isFuture ? { opacity: 0.5 } : {})
+                    }}
                   >
                     <td className={tableStyles.tdPrimary}>{row.date}</td>
                     <td className={tableStyles.td}>{getDayName(row.date)}</td>

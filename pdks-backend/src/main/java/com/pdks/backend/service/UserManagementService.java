@@ -49,26 +49,18 @@ public class UserManagementService {
     /**
      * Yeni EMPLOYEE hesabı oluşturur.
      * - Rol her zaman EMPLOYEE olarak atanır (istekte rol alanı yok)
+     * - Kullanıcı adı (username) olarak personelin kart numarası (cardNo) atanır
      * - mustChangePassword = true (ilk girişte değiştirme zorunlu)
      * - Şifre BCrypt ile hash'lenir
      */
     @Transactional
     public UserResponse createUser(String firmId, UserCreateRequest request) {
         // Zorunlu alan kontrolleri
-        if (request.getUsername() == null || request.getUsername().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Kullanıcı adı boş bırakılamaz");
-        }
         if (request.getPassword() == null || request.getPassword().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Şifre boş bırakılamaz");
         }
         if (request.getEmployeeId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Personel seçimi zorunludur");
-        }
-
-        // Username tekil mi kontrol et (firmId + username çifti)
-        Optional<User> existing = userRepository.findByUsernameAndFirmId(request.getUsername(), firmId);
-        if (existing.isPresent()) {
-            throw new DuplicateUsernameException(request.getUsername());
         }
 
         // Personel mevcut, aktif ve bu firmaya ait mi?
@@ -87,11 +79,26 @@ public class UserManagementService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pasif personele hesap açılamaz");
         }
 
-        // Kaydet — personelin zaten hesabı varsa uq_users_employee kısıtı tetiklenir
+        // Username olarak personelin kart numarası kullanılır
+        String generatedUsername = employee.getCardNo();
+
+        // 1. Bu personelin zaten hesabı var mı?
+        Optional<User> existingByEmployee = userRepository.findByEmployeeId(employee.getId());
+        if (existingByEmployee.isPresent()) {
+            throw new DuplicateEmployeeAccountException();
+        }
+
+        // 2. Bu kart numarası (kimlik) başka bir hesap tarafından alınmış mı? (Örn. pasife alınmış eski personel hesabı)
+        Optional<User> existingByUsername = userRepository.findByUsernameAndFirmId(generatedUsername, firmId);
+        if (existingByUsername.isPresent()) {
+            throw new DuplicateUsernameException(generatedUsername);
+        }
+
+        // Kaydet
         try {
             User user = User.builder()
                     .firmId(firmId)
-                    .username(request.getUsername())
+                    .username(generatedUsername) // Kart numarası
                     .password(passwordEncoder.encode(request.getPassword()))
                     .employee(employee)
                     .role(Role.EMPLOYEE)         // Her zaman EMPLOYEE — değiştirilemez

@@ -1,9 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import api from '../../api/axios';
 import Drawer from '../ui/drawer/Drawer';
-import drawerStyles from '../ui/drawer/Drawer.module.css';
 import FormInput from '../ui/form/FormInput';
-import FormSelect from '../ui/form/FormSelect';
 import Badge from '../ui/badge/Badge';
 import { useToast } from '../ui/toast/ToastContext';
 import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
@@ -16,148 +14,6 @@ export interface UserAccount {
   employeeId: number;
   employeeName: string;
   cardNo: string;
-}
-
-interface EmployeeOption {
-  id: number;
-  firstName: string;
-  lastName: string;
-  cardNo: string;
-}
-
-interface CreateUserDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  existingEmployeeIds: Set<number>;
-}
-
-export function CreateUserDrawer({ isOpen, onClose, onSuccess, existingEmployeeIds }: CreateUserDrawerProps) {
-  const [employees, setEmployees] = useState<EmployeeOption[]>([]);
-  const [employeeId, setEmployeeId] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{ employeeId?: string; username?: string }>({});
-  const [isDirty, setIsDirty] = useState(false);
-
-  const { showToast } = useToast();
-
-  useEffect(() => {
-    if (isOpen) {
-      setEmployeeId('');
-      setUsername('');
-      setPassword('');
-      setFieldErrors({});
-      setIsDirty(false);
-      // Tüm personeli çek — hesabı olanları filtreleyeceğiz
-      api.get('/admin/employees')
-        .then(res => setEmployees(res.data))
-        .catch(() => showToast('Personel listesi alınamadı', 'error'));
-    }
-  }, [isOpen]);
-
-  // Hesabı olmayan personeller — existingEmployeeIds kullanarak çıkarıyoruz
-  // Bu sayede kullanıcı var olan bir personeli seçip hata almaz
-  const availableEmployees = employees.filter(e => !existingEmployeeIds.has(e.id));
-
-  const employeeOptions = [
-    { value: '', label: availableEmployees.length === 0 ? 'Tüm personelin hesabı var' : 'Personel seçin...' },
-    ...availableEmployees.map(e => ({
-      value: String(e.id),
-      label: `${e.firstName} ${e.lastName} (${e.cardNo})`
-    }))
-  ];
-
-  const handleChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setter(e.target.value);
-    setIsDirty(true);
-    setFieldErrors({});
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const errors: { employeeId?: string; username?: string } = {};
-    if (!employeeId) errors.employeeId = 'Personel seçimi zorunludur';
-    if (!username.trim()) errors.username = 'Kullanıcı adı zorunludur';
-    if (!password.trim()) {
-      showToast('Başlangıç şifresi boş bırakılamaz', 'error');
-      return;
-    }
-    if (Object.keys(errors).length > 0) { setFieldErrors(errors); return; }
-
-    setIsSubmitting(true);
-    try {
-      await api.post('/admin/users-v2', {
-        employeeId: parseInt(employeeId),
-        username: username.trim(),
-        password
-      });
-      // Şifre bir daha gösterilemiyor — toast'ta göster
-      showToast(`Hesap oluşturuldu — Kullanıcı adı: ${username.trim()}, Şifre: ${password}`, 'success');
-      setIsDirty(false);
-      onSuccess();
-    } catch (err: any) {
-      const errorCode = err.response?.data?.errorCode;
-      if (errorCode === 'DUPLICATE_USERNAME') {
-        setFieldErrors({ username: err.response.data.message });
-      } else if (errorCode === 'DUPLICATE_EMPLOYEE_ACCOUNT') {
-        setFieldErrors({ employeeId: err.response.data.message });
-      } else {
-        showToast(err.response?.data?.message || 'Hesap oluşturulamadı', 'error');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <Drawer
-      isOpen={isOpen}
-      onClose={onClose}
-      isDirty={isDirty}
-      title="Yeni Hesap"
-      subtitle="Personel için giriş hesabı oluşturun"
-      footerRight={
-        <>
-          <button type="button" className={drawerStyles.btnCancel} onClick={onClose} disabled={isSubmitting}>
-            İptal
-          </button>
-          <button type="submit" form="create-user-form" className={drawerStyles.btnSave} disabled={isSubmitting}>
-            {isSubmitting ? 'Kaydediliyor...' : 'Kaydet'}
-          </button>
-        </>
-      }
-    >
-      <form id="create-user-form" onSubmit={handleSubmit}>
-        <FormSelect
-          label="Personel"
-          options={employeeOptions}
-          value={employeeId}
-          onChange={handleChange(setEmployeeId) as any}
-          error={fieldErrors.employeeId}
-          required
-        />
-        <FormInput
-          label="Kullanıcı Adı"
-          value={username}
-          onChange={handleChange(setUsername) as any}
-          placeholder="Örn. mehmet.yilmaz"
-          error={fieldErrors.username}
-          required
-        />
-        <FormInput
-          label="Başlangıç Şifresi"
-          type="password"
-          value={password}
-          onChange={handleChange(setPassword) as any}
-          placeholder="Geçici şifre girin"
-          hint="Personel ilk girişte bu şifreyi değiştirmek zorunda kalacak."
-          required
-        />
-      </form>
-    </Drawer>
-  );
 }
 
 interface EditUserDrawerProps {
@@ -239,7 +95,7 @@ export function EditUserDrawer({ isOpen, onClose, onSuccess, user }: EditUserDra
       <div style={{ marginBottom: 'var(--space-xl)' }}>
         <div style={{ marginBottom: 'var(--space-lg)' }}>
           <div style={{ fontSize: 'var(--font-size-label)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-            Kullanıcı Adı
+            Giriş Kimliği
           </div>
           <div style={{ fontSize: 'var(--font-size-body)', fontFamily: 'var(--font-mono)', background: 'var(--color-surface-sunken)', padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
             {user.username}

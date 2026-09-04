@@ -17,6 +17,7 @@ public interface RawScanRepository extends JpaRepository<RawScan, Long> {
     @org.springframework.data.jpa.repository.Query("SELECT r FROM RawScan r WHERE r.employee.firmId = :firmId " +
            "AND r.scannedAt >= :start AND r.scannedAt < :end " +
            "AND (:employeeId IS NULL OR r.employee.id = :employeeId) " +
+           "AND (:departmentId IS NULL OR r.employee.department.id = :departmentId) " +
            "AND (:suspiciousOnly IS NULL OR :suspiciousOnly = false OR r.suspicious = true) " +
            "ORDER BY r.scannedAt DESC")
     java.util.List<RawScan> findAdminScans(
@@ -24,5 +25,6 @@ public interface RawScanRepository extends JpaRepository<RawScan, Long> {
             @org.springframework.data.repository.query.Param("start") LocalDateTime start,
             @org.springframework.data.repository.query.Param("end") LocalDateTime end,
             @org.springframework.data.repository.query.Param("employeeId") Long employeeId,
+            @org.springframework.data.repository.query.Param("departmentId") Long departmentId,
             @org.springframework.data.repository.query.Param("suspiciousOnly") Boolean suspiciousOnly);
 }

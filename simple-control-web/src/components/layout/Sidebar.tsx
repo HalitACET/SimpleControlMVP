@@ -19,6 +19,7 @@ export default function Sidebar() {
       label: 'Tanımlar',
       items: [
         { label: 'Personel', path: '/employees', icon: <Users size={18} /> },
+        { label: 'Departmanlar', path: '/departments', icon: <Users size={18} /> },
         { label: 'Cihazlar', path: '#cihazlar', icon: <Cpu size={18} /> },
         { label: 'Lokasyonlar', path: '#lokasyonlar', icon: <MapPin size={18} /> },
         { label: 'Vardiyalar', path: '/shifts', icon: <CalendarDays size={18} /> },

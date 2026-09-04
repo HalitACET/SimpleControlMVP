@@ -169,7 +169,7 @@ public class SimulatorService {
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.plusDays(1).atStartOfDay();
 
-        List<RawScan> scans = rawScanRepository.findAdminScans(employee.getFirmId(), start, end, employeeId, null);
+        List<RawScan> scans = rawScanRepository.findAdminScans(employee.getFirmId(), start, end, employeeId, null, null);
         
         int deleted = 0;
         for (RawScan scan : scans) {

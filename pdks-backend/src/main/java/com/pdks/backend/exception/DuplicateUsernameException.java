@@ -4,11 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Kullanıcı adı aynı firmada zaten kullanılıyorsa fırlatılır.
+ * Kullanıcı adı (kart numarası) aynı firmada zaten kullanılıyorsa fırlatılır.
  */
 @ResponseStatus(HttpStatus.CONFLICT)
 public class DuplicateUsernameException extends RuntimeException {
     public DuplicateUsernameException(String username) {
-        super("'" + username + "' kullanıcı adı bu firmada zaten kullanılıyor");
+        super("'" + username + "' giriş kimliği (kart numarası) bu firmada zaten başka bir hesap tarafından kullanılıyor");
     }
 }

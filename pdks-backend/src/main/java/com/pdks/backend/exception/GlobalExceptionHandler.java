@@ -102,6 +102,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(DuplicateDepartmentNameException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateDepartmentNameException(DuplicateDepartmentNameException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DUPLICATE_DEPARTMENT_NAME");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(DepartmentHasEmployeesException.class)
+    public ResponseEntity<Map<String, Object>> handleDepartmentHasEmployeesException(DepartmentHasEmployeesException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", ex.getMessage());
+        body.put("errorCode", "DEPARTMENT_HAS_EMPLOYEES");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     /**
      * 409 DUPLICATE_SHIFT_NAME
      */

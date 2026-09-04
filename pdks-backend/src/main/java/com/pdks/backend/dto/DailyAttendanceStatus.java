@@ -5,5 +5,6 @@ public enum DailyAttendanceStatus {
     EKSIK_CIKIS,
     DEVAMSIZ,
     TATIL,
-    GRUP_ATANMAMIS
+    GRUP_ATANMAMIS,
+    GELECEK
 }

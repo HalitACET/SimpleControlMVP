@@ -24,5 +24,7 @@ public class EmployeeResponse {
     private boolean active;
     private Long workGroupId;
     private String workGroupName;
+    private Long departmentId;
+    private String departmentName;
     private LocalDateTime createdAt;
 }

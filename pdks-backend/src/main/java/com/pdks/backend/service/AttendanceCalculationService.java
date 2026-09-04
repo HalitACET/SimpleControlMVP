@@ -106,6 +106,11 @@ public class AttendanceCalculationService {
                 .dayOfWeek(w.getDayOfWeek())
                 .suspiciousScanCount(w.getSuspiciousScanCount());
 
+        if (w.getDate().isAfter(LocalDate.now())) {
+            builder.status(DailyAttendanceStatus.GELECEK);
+            return buildWithZeros(builder);
+        }
+
         if (!w.isHasWorkGroup()) {
             builder.status(DailyAttendanceStatus.GRUP_ATANMAMIS);
         } else if (w.isHoliday() || w.getShift() == null) {

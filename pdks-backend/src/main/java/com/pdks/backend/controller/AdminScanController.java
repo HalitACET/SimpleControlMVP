@@ -34,7 +34,8 @@ public class AdminScanController {
             @RequestParam(required = false) Long employeeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(required = false) Boolean suspiciousOnly) {
-        return ResponseEntity.ok(adminScanService.getScans(authHeader, employeeId, startDate, endDate, suspiciousOnly));
+            @RequestParam(required = false) Boolean suspiciousOnly,
+            @RequestParam(required = false) Long departmentId) {
+        return ResponseEntity.ok(adminScanService.getScans(authHeader, employeeId, startDate, endDate, suspiciousOnly, departmentId));
     }
 }

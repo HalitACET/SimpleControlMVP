@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
 import api from '../api/axios';
 import Badge from '../components/ui/badge/Badge';
 import tableStyles from '../components/ui/table/Table.module.css';
-import { CreateUserDrawer, EditUserDrawer, type UserAccount } from '../components/users/UserAccountDrawers';
+import { EditUserDrawer, type UserAccount } from '../components/users/UserAccountDrawers';
 import { useToast } from '../components/ui/toast/ToastContext';
+import SearchInput from '../components/ui/searchinput/SearchInput';
+import { normalizeTurkishString } from '../utils/stringUtils';
 
 export default function UserAccounts() {
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserAccount | null>(null);
   const { showToast } = useToast();
 
@@ -34,32 +35,36 @@ export default function UserAccounts() {
     fetchUsers();
   }, []);
 
-  // Hesabı olan personel ID'leri — CreateUserDrawer'ın filtrelemesi için
-  // Mevcut kullanıcıların employeeId'lerinden bir Set oluşturuyoruz.
-  // Bu Set drawer'a prop olarak geçiliyor; drawer personel listesini bu Set'e bakarak filtreli sunuyor.
-  const existingEmployeeIds = new Set(users.map(u => u.employeeId));
-
-  const handleCreateSuccess = () => {
-    setIsCreateOpen(false);
-    fetchUsers();
-  };
-
   const handleEditSuccess = () => {
     setSelectedUser(null);
     fetchUsers();
   };
 
+  const normalizedSearch = normalizeTurkishString(searchTerm);
+  const filteredUsers = users.filter(user => {
+    if (!normalizedSearch) return true;
+    
+    const nameMatch = normalizeTurkishString(user.employeeName).includes(normalizedSearch);
+    const cardMatch = normalizeTurkishString(user.cardNo).includes(normalizedSearch);
+    const usernameMatch = normalizeTurkishString(user.username).includes(normalizedSearch);
+    
+    return nameMatch || cardMatch || usernameMatch;
+  });
+
   return (
     <div style={{ padding: 'var(--space-xl)' }}>
-      {/* Üst çubuk */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-lg)' }}>
-        <button
-          className="btn btn-primary"
-          onClick={() => setIsCreateOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <Plus size={18} /> Yeni Hesap
-        </button>
+      {/* Açıklama */}
+      <div style={{ marginBottom: 'var(--space-lg)', color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-body)' }}>
+        Hesaplar personel kaydı üzerinden oluşturulur. Bu ekrandan şifre sıfırlayabilir ve erişimi kapatabilirsiniz.
+      </div>
+
+      {/* Arama */}
+      <div style={{ marginBottom: 'var(--space-lg)' }}>
+        <SearchInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Personel adı veya kart no ile ara"
+        />
       </div>
 
       {/* Tablo */}
@@ -70,11 +75,13 @@ export default function UserAccounts() {
           <div className={tableStyles.emptyState}>Yükleniyor...</div>
         ) : users.length === 0 ? (
           <div className={tableStyles.emptyState}>Henüz hiç kullanıcı hesabı yok.</div>
+        ) : filteredUsers.length === 0 ? (
+          <div className={tableStyles.emptyState}>Aramanıza uygun kayıt bulunamadı</div>
         ) : (
           <table className={tableStyles.table}>
             <thead className={tableStyles.thead}>
               <tr>
-                <th className={tableStyles.th}>Kullanıcı Adı</th>
+                <th className={tableStyles.th}>Giriş Kimliği</th>
                 <th className={tableStyles.th}>Personel</th>
                 <th className={tableStyles.th} style={{ width: '110px' }}>Kart No</th>
                 <th className={tableStyles.th} style={{ width: '110px' }}>Durum</th>
@@ -82,7 +89,7 @@ export default function UserAccounts() {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
+              {filteredUsers.map(user => (
                 <tr
                   key={user.id}
                   className={tableStyles.tr}
@@ -108,14 +115,6 @@ export default function UserAccounts() {
           </table>
         )}
       </div>
-
-      {/* Yeni hesap drawer */}
-      <CreateUserDrawer
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSuccess={handleCreateSuccess}
-        existingEmployeeIds={existingEmployeeIds}
-      />
 
       {/* Mevcut hesap drawer */}
       <EditUserDrawer

@@ -28,6 +28,7 @@ public class EmployeeService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final com.pdks.backend.repository.WorkGroupRepository workGroupRepository;
+    private final com.pdks.backend.repository.DepartmentRepository departmentRepository;
 
     // ─── Listeleme ────────────────────────────────────────────────────────────
 
@@ -66,12 +67,19 @@ public class EmployeeService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya pasif çalışma grubu ID: " + request.getWorkGroupId()));
         }
 
+        com.pdks.backend.entity.Department department = null;
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findByIdAndFirmIdAndActiveTrue(request.getDepartmentId(), firmId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya pasif departman ID: " + request.getDepartmentId()));
+        }
+
         Employee employee = Employee.builder()
                 .firmId(firmId)
                 .firstName(request.getFirstName().trim())
                 .lastName(request.getLastName().trim())
                 .cardNo(request.getCardNo().trim())
                 .workGroup(workGroup)
+                .department(department)
                 .active(true)
                 .build();
 
@@ -101,10 +109,17 @@ public class EmployeeService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya pasif çalışma grubu ID: " + request.getWorkGroupId()));
         }
 
+        com.pdks.backend.entity.Department department = null;
+        if (request.getDepartmentId() != null) {
+            department = departmentRepository.findByIdAndFirmIdAndActiveTrue(request.getDepartmentId(), firmId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Geçersiz veya pasif departman ID: " + request.getDepartmentId()));
+        }
+
         employee.setFirstName(request.getFirstName().trim());
         employee.setLastName(request.getLastName().trim());
         employee.setCardNo(newCardNo);
         employee.setWorkGroup(workGroup);
+        employee.setDepartment(department);
 
         return toResponse(employeeRepository.save(employee));
     }
@@ -153,6 +168,8 @@ public class EmployeeService {
                 .active(emp.isActive())
                 .workGroupId(emp.getWorkGroup() != null ? emp.getWorkGroup().getId() : null)
                 .workGroupName(emp.getWorkGroup() != null ? emp.getWorkGroup().getName() : null)
+                .departmentId(emp.getDepartment() != null ? emp.getDepartment().getId() : null)
+                .departmentName(emp.getDepartment() != null ? emp.getDepartment().getName() : null)
                 .createdAt(emp.getCreatedAt())
                 .build();
     }

@@ -69,13 +69,13 @@ public class AdminScanService {
         return mapToResponse(rawScan);
     }
 
-    public List<AdminScanResponse> getScans(String authHeader, Long employeeId, LocalDate startDate, LocalDate endDate, Boolean suspiciousOnly) {
+    public List<AdminScanResponse> getScans(String authHeader, Long employeeId, LocalDate startDate, LocalDate endDate, Boolean suspiciousOnly, Long departmentId) {
         User admin = getUserFromToken(authHeader);
 
         LocalDateTime start = startDate.atStartOfDay();
         LocalDateTime end = endDate.plusDays(1).atStartOfDay();
 
-        List<RawScan> scans = rawScanRepository.findAdminScans(admin.getFirmId(), start, end, employeeId, suspiciousOnly);
+        List<RawScan> scans = rawScanRepository.findAdminScans(admin.getFirmId(), start, end, employeeId, departmentId, suspiciousOnly);
         return scans.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 

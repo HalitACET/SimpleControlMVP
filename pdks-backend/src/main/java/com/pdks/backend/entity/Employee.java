@@ -50,6 +50,10 @@ public class Employee {
     @JoinColumn(name = "work_group_id", foreignKey = @ForeignKey(name = "fk_employees_work_group"))
     private WorkGroup workGroup;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", foreignKey = @ForeignKey(name = "fk_employees_department"))
+    private Department department;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

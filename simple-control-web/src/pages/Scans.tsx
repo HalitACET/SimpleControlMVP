@@ -57,8 +57,10 @@ export default function Scans() {
   const [startDate, setStartDate] = useState(getLocalDateString(defaultStartDate));
   const [endDate, setEndDate] = useState(getLocalDateString(defaultEndDate));
   const [employeeId, setEmployeeId] = useState('');
+  const [departmentId, setDepartmentId] = useState('');
   const [suspiciousOnly, setSuspiciousOnly] = useState(false);
   
+  const [departments, setDepartments] = useState<{value: string, label: string}[]>([]);
   const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
   const [data, setData] = useState<RawScanRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,6 +70,16 @@ export default function Scans() {
   const { showToast } = useToast();
 
   useEffect(() => {
+    // Fetch departments for filter
+    api.get('/admin/departments')
+      .then(res => {
+        setDepartments(res.data.map((d: any) => ({
+          value: d.id.toString(),
+          label: d.name
+        })));
+      })
+      .catch(() => showToast('Departman listesi alınamadı', 'error'));
+
     // Fetch employees for filter & drawer
     api.get('/admin/employees')
       .then(res => {
@@ -81,7 +93,7 @@ export default function Scans() {
 
   useEffect(() => {
     fetchData();
-  }, [startDate, endDate, employeeId, suspiciousOnly]);
+  }, [startDate, endDate, employeeId, departmentId, suspiciousOnly]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -89,6 +101,7 @@ export default function Scans() {
     try {
       let url = `/admin/scans?startDate=${startDate}&endDate=${endDate}&suspiciousOnly=${suspiciousOnly}`;
       if (employeeId) url += `&employeeId=${employeeId}`;
+      if (departmentId) url += `&departmentId=${departmentId}`;
       const res = await api.get(url);
       setData(res.data);
     } catch (err: any) {
@@ -115,6 +128,14 @@ export default function Scans() {
             value={endDate} 
             onChange={e => setEndDate(e.target.value)} 
           />
+          <div style={{ minWidth: '220px' }}>
+            <FormSelect
+              label="Departman"
+              options={[{ value: '', label: 'Tüm Departmanlar' }, ...departments]}
+              value={departmentId}
+              onChange={e => setDepartmentId(e.target.value)}
+            />
+          </div>
           <div style={{ minWidth: '220px' }}>
             <FormSelect
               label="Personel"

@@ -10,6 +10,8 @@ public class MonthlyReportResponse {
     private String employeeName;
     private String cardNo;
     private String workGroupName;
+    private Long departmentId;
+    private String departmentName;
 
     private int expectedWorkDays;
     private int attendedDays;

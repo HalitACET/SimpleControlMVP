@@ -3,6 +3,7 @@ import styles from './Topbar.module.css';
 
 const routeMappings: Record<string, { group: string; title: string }> = {
   '/employees': { group: 'Tanımlar', title: 'Personel Listesi' },
+  '/departments': { group: 'Tanımlar', title: 'Departmanlar' },
   '/shifts': { group: 'Tanımlar', title: 'Vardiyalar' },
   '/work-groups': { group: 'Tanımlar', title: 'Çalışma Grupları' },
   '/holidays': { group: 'Tanımlar', title: 'Tatiller' },
@@ -21,6 +22,10 @@ export default function Topbar() {
   
   if (!routeInfo && location.pathname.startsWith('/reports/monthly/')) {
     routeInfo = { group: 'Raporlar', title: 'Aylık Puantaj Detayı' };
+  }
+  
+  if (!routeInfo && location.pathname.startsWith('/departments/')) {
+    routeInfo = { group: 'Tanımlar', title: 'Departmanlar / Detay' };
   }
   
   if (!routeInfo) {

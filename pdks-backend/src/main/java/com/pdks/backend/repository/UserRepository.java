@@ -21,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findByUsernameAndFirmId(String username, String firmId);
 
+    Optional<User> findByEmployeeId(Long employeeId);
+
     List<User> findByFirmId(String firmId);
 
     @Query("SELECT u FROM User u WHERE u.firmId = :firmId AND " +

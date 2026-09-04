@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
 import { useConfirm } from '../ui/confirm/ConfirmDialogContext';
 import FormInput from '../ui/form/FormInput';
 import FormSelect from '../ui/form/FormSelect';
+import Badge from '../ui/badge/Badge';
 import { type WorkGroupListResponse } from '../../pages/WorkGroups';
 import Drawer from '../ui/drawer/Drawer';
 import drawerStyles from '../ui/drawer/Drawer.module.css';
@@ -16,6 +18,13 @@ interface Employee {
   lastName: string;
   cardNo: string;
   workGroupId?: number;
+  departmentId?: number;
+}
+
+interface ExistingAccount {
+  id: number;
+  username: string;
+  active: boolean;
 }
 
 interface EmployeeDrawerProps {
@@ -31,8 +40,15 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
   const [cardNo, setCardNo] = useState('');
   const [workGroupId, setWorkGroupId] = useState('');
   const [workGroups, setWorkGroups] = useState<WorkGroupListResponse[]>([]);
+  const [departmentId, setDepartmentId] = useState('');
+  const [departments, setDepartments] = useState<{id: number, name: string}[]>([]);
   
-  const [fieldErrors, setFieldErrors] = useState<{ firstName?: string; lastName?: string; cardNo?: string }>({});
+  const [password, setPassword] = useState('');
+  // Düzenleme modunda: bu personele ait mevcut hesap (varsa)
+  const [existingAccount, setExistingAccount] = useState<ExistingAccount | null>(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+  
+  const [fieldErrors, setFieldErrors] = useState<{ firstName?: string; lastName?: string; cardNo?: string; password?: string }>({});
   const [globalError, setGlobalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -43,6 +59,7 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
 
   const { showToast } = useToast();
   const { confirm } = useConfirm();
+  const navigate = useNavigate();
   const isEdit = !!employeeToEdit;
 
   useEffect(() => {
@@ -52,42 +69,46 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
       setGlobalError('');
       setIsDirty(false);
       setIsSubmitting(false);
+      setPassword('');
+      setExistingAccount(null);
 
       api.get('/admin/work-groups').then(res => setWorkGroups(res.data)).catch(err => setGlobalError(handleApiError(err)));
+      api.get('/admin/departments').then(res => setDepartments(res.data)).catch(err => setGlobalError(handleApiError(err)));
 
       if (employeeToEdit) {
         setFirstName(employeeToEdit.firstName);
         setLastName(employeeToEdit.lastName);
         setCardNo(employeeToEdit.cardNo);
         setWorkGroupId(employeeToEdit.workGroupId ? String(employeeToEdit.workGroupId) : '');
+        setDepartmentId(employeeToEdit.departmentId ? String(employeeToEdit.departmentId) : '');
+
+        // Personelin mevcut hesabını bul
+        setAccountLoading(true);
+        api.get('/admin/users-v2')
+          .then(res => {
+            const found = res.data.find((u: any) => u.employeeId === employeeToEdit.id);
+            setExistingAccount(found || null);
+          })
+          .catch(() => setExistingAccount(null))
+          .finally(() => setAccountLoading(false));
       } else {
         setFirstName('');
         setLastName('');
         setCardNo('');
         setWorkGroupId('');
+        setDepartmentId('');
       }
 
-      // Focus first input on open
-      setTimeout(() => {
-        firstInputRef.current?.focus();
-      }, 100);
+      setTimeout(() => { firstInputRef.current?.focus(); }, 100);
     } else {
-      if (triggerElement) {
-        triggerElement.focus();
-      }
+      if (triggerElement) triggerElement.focus();
     }
   }, [isOpen, employeeToEdit]);
 
   useEffect(() => {
     if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleCloseRequest();
-        return;
-      }
-
-      // Focus trap
+      if (e.key === 'Escape') { handleCloseRequest(); return; }
       if (e.key === 'Tab' && drawerRef.current) {
         const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -95,26 +116,16 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
         if (focusableElements.length > 0) {
           const first = focusableElements[0];
           const last = focusableElements[focusableElements.length - 1];
-
           if (e.shiftKey) {
-            if (document.activeElement === first) {
-              e.preventDefault();
-              last.focus();
-            }
+            if (document.activeElement === first) { e.preventDefault(); last.focus(); }
           } else {
-            if (document.activeElement === last) {
-              e.preventDefault();
-              first.focus();
-            }
+            if (document.activeElement === last) { e.preventDefault(); first.focus(); }
           }
         }
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => { document.removeEventListener('keydown', handleKeyDown); };
   }, [isOpen, isDirty]);
 
   const handleCloseRequest = async () => {
@@ -131,7 +142,7 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
   };
 
   const validate = () => {
-    const errors: { firstName?: string; lastName?: string; cardNo?: string } = {};
+    const errors: typeof fieldErrors = {};
     if (!firstName.trim()) errors.firstName = 'Ad boş bırakılamaz';
     else if (firstName.length > 75) errors.firstName = 'Ad en fazla 75 karakter olabilir';
 
@@ -160,16 +171,45 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
     setGlobalError('');
 
     try {
-      const payload = { firstName, lastName, cardNo, workGroupId: workGroupId ? parseInt(workGroupId) : null };
+      const payload = { 
+        firstName, 
+        lastName, 
+        cardNo, 
+        workGroupId: workGroupId ? parseInt(workGroupId) : null,
+        departmentId: departmentId ? parseInt(departmentId) : null
+      };
+      let savedEmployeeId: number;
+
       if (isEdit) {
         await api.put(`/admin/employees/${employeeToEdit.id}`, payload);
+        savedEmployeeId = employeeToEdit.id;
         showToast('Personel başarıyla güncellendi', 'success');
       } else {
-        await api.post('/admin/employees', payload);
+        const res = await api.post('/admin/employees', payload);
+        savedEmployeeId = res.data.id;
         showToast('Personel başarıyla oluşturuldu', 'success');
       }
-      setIsDirty(false); // don't warn on close
-      onSuccess(); // parent should call onClose
+
+      // Hesap alanları doldurulmuşsa ve bu personelin henüz hesabı yoksa hesap oluştur
+      // Sıralama: önce personel kaydedilir, ardından (başarıyla) hesap oluşturulur.
+      // Hesap oluşturma başarısız olsa bile personel kaydı korunur.
+      const showAccountFields = !isEdit || !existingAccount;
+      if (showAccountFields && password.trim()) {
+        try {
+          await api.post('/admin/users-v2', {
+            employeeId: savedEmployeeId,
+            password
+          });
+          showToast(`Hesap oluşturuldu — Giriş kimliği (Kart No): ${cardNo}, Şifre: ${password}`, 'success');
+        } catch (accountErr: any) {
+          const reason = accountErr.response?.data?.message || 'Bilinmeyen hata';
+          // Personel kaydedildi ama hesap oluşturulamadı — kullanıcıya açıkça bildir
+          showToast(`Personel kaydedildi ancak hesap oluşturulamadı: ${reason}`, 'error');
+        }
+      }
+
+      setIsDirty(false);
+      onSuccess();
     } catch (err: any) {
       if (err.response?.status === 409 && err.response?.data?.errorCode === 'DUPLICATE_CARD_NO') {
         setFieldErrors({ cardNo: err.response.data.message });
@@ -204,6 +244,64 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
       setGlobalError(handleApiError(err));
       setIsSubmitting(false);
     }
+  };
+
+  // Düzenleme modunda hesap varsa: salt okunur göster + link
+  // Düzenleme modunda hesap yoksa (veya yeni personel): hesap alanlarını göster
+  const renderAccountSection = () => {
+    if (accountLoading) {
+      return (
+        <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-body-sm)' }}>
+          Hesap bilgisi yükleniyor...
+        </div>
+      );
+    }
+
+    if (isEdit && existingAccount) {
+      // Salt okunur hesap bilgisi
+      return (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-body)' }}>
+              {existingAccount.username}
+            </span>
+            <Badge variant={existingAccount.active ? 'success' : 'neutral'}>
+              {existingAccount.active ? 'Aktif' : 'Pasif'}
+            </Badge>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/users')}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              color: 'var(--color-accent)',
+              fontSize: 'var(--font-size-body-sm)',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            Hesap ayarları →
+          </button>
+        </div>
+      );
+    }
+
+    // Yeni personel veya hesabı olmayan mevcut personel
+    return (
+      <>
+        <FormInput
+          label="Başlangıç Şifresi"
+          type="password"
+          value={password}
+          onChange={handleChange(setPassword)}
+          placeholder="Geçici şifre"
+          error={fieldErrors.password}
+          hint="Boş bırakılırsa hesap oluşturulmaz. İlk girişte değiştirilmesi zorunludur. Personel giriş kimliği olarak kart numarasını kullanacaktır."
+        />
+      </>
+    );
   };
 
   return (
@@ -295,6 +393,34 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
           }}
           options={[{ value: '', label: 'Atanmamış' }, ...workGroups.map(wg => ({ value: String(wg.id), label: wg.name }))]}
         />
+        <FormSelect
+          label="Departman"
+          value={departmentId}
+          onChange={(e) => {
+            setDepartmentId(e.target.value);
+            if (!isDirty) setIsDirty(true);
+          }}
+          options={[{ value: '', label: 'Atanmamış' }, ...departments.map(d => ({ value: String(d.id), label: d.name }))]}
+        />
+
+        {/* Uygulama Erişimi bölümü */}
+        <div style={{
+          borderTop: '1px solid var(--color-border)',
+          marginTop: 'var(--space-xl)',
+          paddingTop: 'var(--space-xl)'
+        }}>
+          <div style={{
+            fontSize: 'var(--font-size-label)',
+            fontWeight: 'var(--font-weight-semibold)',
+            color: 'var(--color-text-secondary)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            marginBottom: 'var(--space-lg)'
+          }}>
+            Uygulama Erişimi
+          </div>
+          {renderAccountSection()}
+        </div>
       </form>
     </Drawer>
   );
