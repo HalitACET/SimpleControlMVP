@@ -205,6 +205,15 @@ public class GlobalExceptionHandler {
 
     // ─── Beklenmedik Hatalar ──────────────────────────────────────────────────
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        log.debug("Bilinmeyen URL çağrısı: {}", ex.getMessage());
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", "Kaynak bulunamadi.");
+        body.put("errorCode", "NOT_FOUND");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Beklenmedik hata", ex);

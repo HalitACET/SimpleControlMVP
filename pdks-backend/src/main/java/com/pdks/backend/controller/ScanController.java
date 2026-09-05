@@ -34,9 +34,4 @@ public class ScanController {
         return ResponseEntity.ok(scanService.syncScans(authHeader, requests));
     }
 
-    @GetMapping("/next-action")
-    public ResponseEntity<String> getNextAction(
-            @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-        return ResponseEntity.ok(scanService.getNextAction(authHeader));
-    }
 }

@@ -139,16 +139,7 @@ public class ScanService {
         return rawScanRepository.save(rawScan);
     }
 
-    public String getNextAction(String authHeader) {
-        User user = getUserFromToken(authHeader);
-        if (user.getEmployee() == null) return "giriş";
 
-        LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.MIN);
-        LocalDateTime endOfDay = LocalDateTime.now().with(LocalTime.MAX);
-
-        long count = rawScanRepository.countByEmployeeAndScannedAtBetween(user.getEmployee(), startOfDay, endOfDay);
-        return (count % 2 == 0) ? "giriş" : "çıkış";
-    }
 
     private Location resolveLocation(String firmId, ScanRequest request) {
         try {
