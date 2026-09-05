@@ -20,10 +20,12 @@ import {useSession, clearSession} from '../store/session';
 import {getDeviceName, verifyDevice, DeviceVerifyResponse} from '../services/device';
 import {
   getNextAction,
-  getMyTimesheetSummary,
-  NextActionResponse,
-  TimesheetSummaryResponse,
+  getMySummary,
 } from '../services/api';
+import {
+  NextActionResponse,
+  SummaryResponse,
+} from '../types/api';
 
 const Skeleton = ({width, height, style}: {width?: number | string; height: number; style?: any}) => (
   <View style={[{backgroundColor: colors.border, borderRadius: radius.sm, width: width || '100%', height}, style]} />
@@ -37,7 +39,7 @@ export default function ProfileScreen({navigation}: {navigation: any}) {
   const [loading, setLoading] = useState(true);
   
   const [nextAction, setNextAction] = useState<NextActionResponse | null>(null);
-  const [summary, setSummary] = useState<TimesheetSummaryResponse | null>(null);
+  const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [deviceVerify, setDeviceVerify] = useState<DeviceVerifyResponse | null>(null);
 
   const subInfoParts = [
@@ -53,7 +55,7 @@ export default function ProfileScreen({navigation}: {navigation: any}) {
 
       const [nextActionData, summaryData, deviceData] = await Promise.all([
         getNextAction(token).catch(e => { console.warn('Failed getNextAction:', e); return null; }),
-        getMyTimesheetSummary(token).catch(e => { console.warn('Failed getMyTimesheetSummary:', e); return null; }),
+        getMySummary(token).catch(e => { console.warn('Failed getMySummary:', e); return null; }),
         verifyDevice(token).catch(e => { console.warn('Failed verifyDevice:', e); return null; }),
       ]);
 
@@ -95,9 +97,13 @@ export default function ProfileScreen({navigation}: {navigation: any}) {
   };
 
   const formatMinutes = (totalMin: number) => {
+    if (totalMin === 0) return '0dk';
     const hrs = Math.floor(totalMin / 60);
     const mins = totalMin % 60;
-    return `${hrs}s ${mins}dk`;
+    
+    if (hrs > 0 && mins > 0) return `${hrs}s ${mins}dk`;
+    if (hrs > 0) return `${hrs}s`;
+    return `${mins}dk`;
   };
 
   const formatTime = (isoString?: string | null) => {
@@ -122,14 +128,16 @@ export default function ProfileScreen({navigation}: {navigation: any}) {
 
   // Work parameters
   const displayFirmId = firmId ? firmId.toUpperCase() : 'PDKS';
-  const shiftText = nextAction?.shift
-    ? `${nextAction.shift.name} · ${nextAction.shift.startTime}–${nextAction.shift.endTime}`
+  const shiftText = nextAction?.todayShift
+    ? `${nextAction.todayShift.name} · ${nextAction.todayShift.startTime}–${nextAction.todayShift.endTime}`
+    : nextAction?.holiday
+    ? 'Bugün tatil'
     : 'Atanmadı';
 
   let statusText = 'Dışarıda';
   let statusStyle = styles.statusOut;
   if (nextAction?.suggestedType === 'CIKIS') {
-    const entryTime = formatTime(nextAction.lastTransaction?.timestamp);
+    const entryTime = formatTime(nextAction.lastScan?.scannedAt);
     statusText = entryTime ? `İçeride (${entryTime}'den beri)` : 'İçeride';
     statusStyle = styles.statusIn;
   }
@@ -189,34 +197,51 @@ export default function ProfileScreen({navigation}: {navigation: any}) {
             <Skeleton height={14} width="50%" />
           </Card>
         ) : summary ? (
-          summary.shiftName === null ? (
+          summary.workGroupName === null ? (
             <Card style={styles.infoCard}>
-              <Text style={styles.noShiftText}>Vardiya atanmadığı için özet hesaplanamıyor.</Text>
+              <Text style={styles.noShiftText}>Çalışma grubuna atanmadığı için özet hesaplanamıyor.</Text>
             </Card>
           ) : (
             <Card style={styles.infoCard}>
-              <Text style={styles.workedTitle}>
-                Çalışılan: {formatMinutes(summary.workedMinutes)}
-              </Text>
-              <Text style={styles.expectedText}>
-                Beklenen: {formatMinutes(summary.expectedMinutes)}
-              </Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.rowLabel}>Çalışılan Süre</Text>
+                <Text style={styles.rowValue}>{formatMinutes(summary.totalWorkedMinutes)}</Text>
+              </View>
+              <View style={styles.divider} />
               
-              {summary.lateDays === 0 && summary.incompleteDays === 0 ? (
-                <Text style={[styles.statusText, {color: colors.success}]}>✓ Kayıtlar düzenli</Text>
-              ) : (
-                <View style={styles.statusCol}>
-                  {summary.lateDays > 0 && (
-                    <Text style={[styles.statusText, {color: colors.primaryDark}]}>
-                      ⚠️ {summary.lateDays} gün geç kalma
-                    </Text>
-                  )}
-                  {summary.incompleteDays > 0 && (
-                    <Text style={[styles.statusText, {color: colors.danger}]}>
-                      ⚠️ {summary.incompleteDays} gün eksik kayıt
-                    </Text>
-                  )}
-                </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.rowLabel}>Katılım</Text>
+                <Text style={styles.rowValue}>{summary.attendedDays} / {summary.expectedWorkDays} gün</Text>
+              </View>
+              
+              {summary.totalLateMinutes > 0 && (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.rowLabel}>Geç Kalma</Text>
+                    <Text style={styles.rowValue}>{formatMinutes(summary.totalLateMinutes)}</Text>
+                  </View>
+                </>
+              )}
+              
+              {summary.totalEarlyExitMinutes > 0 && (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.rowLabel}>Erken Çıkış</Text>
+                    <Text style={styles.rowValue}>{formatMinutes(summary.totalEarlyExitMinutes)}</Text>
+                  </View>
+                </>
+              )}
+              
+              {summary.totalOvertimeMinutes > 0 && (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.rowLabel}>Fazla Mesai</Text>
+                    <Text style={styles.rowValue}>{formatMinutes(summary.totalOvertimeMinutes)}</Text>
+                  </View>
+                </>
               )}
             </Card>
           )
