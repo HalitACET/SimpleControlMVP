@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TransactionLogRequest, syncTransactions, SyncResultResponse } from './api';
+import { syncScans } from './api';
 import { getOrCreateDeviceId } from './device';
+import { ScanRequest, BatchScanResult } from '../types/api';
 
 const QUEUE_KEY = 'pdks_offline_queue';
 const REJECTED_KEY = 'pdks_rejected_records';
@@ -28,7 +29,7 @@ const notifyQueueChanges = () => {
   });
 };
 
-export const getQueue = async (): Promise<TransactionLogRequest[]> => {
+export const getQueue = async (): Promise<ScanRequest[]> => {
   try {
     const raw = await AsyncStorage.getItem(QUEUE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -43,11 +44,14 @@ export const getQueueCount = async (): Promise<number> => {
   return queue.length;
 };
 
-export const addToQueue = async (record: Omit<TransactionLogRequest, 'deviceId'>): Promise<void> => {
+// type alani eskiden vardi, ekranlar hala gonderiyor olabilir, derlemeyi bozmamak icin ekledik
+export type OfflineScanRequest = Omit<ScanRequest, 'deviceId'> & { type?: string };
+
+export const addToQueue = async (record: OfflineScanRequest): Promise<void> => {
   try {
     const deviceId = await getOrCreateDeviceId();
     const clientId = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
-    const fullRecord: TransactionLogRequest = {
+    const fullRecord: ScanRequest = {
       ...record,
       deviceId,
       clientId,
@@ -75,7 +79,7 @@ export const removeFromQueue = async (clientIds: string[]): Promise<void> => {
   }
 };
 
-export const getRejectedRecords = async (): Promise<SyncResultResponse[]> => {
+export const getRejectedRecords = async (): Promise<BatchScanResult[]> => {
   try {
     const raw = await AsyncStorage.getItem(REJECTED_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -111,10 +115,10 @@ export const syncQueue = async (token: string): Promise<void> => {
     }
 
     console.log(`[SYNC] Sending ${queue.length} records to server for sync.`);
-    const results = await syncTransactions(token, queue);
+    const results = await syncScans(token, queue);
 
     const savedClientIds: string[] = [];
-    const rejectedResults: SyncResultResponse[] = [];
+    const rejectedResults: BatchScanResult[] = [];
     const rejectedClientIds: string[] = [];
 
     results.forEach(res => {

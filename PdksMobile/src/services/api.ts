@@ -1,5 +1,13 @@
 import axios from 'axios';
 import {API_BASE_URL} from '../config';
+import {
+  ScanRequest,
+  ScanResponse,
+  BatchScanResult,
+  NextActionResponse,
+  ScanHistoryPage,
+  SummaryResponse,
+} from '../types/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -39,7 +47,6 @@ export async function login(
     });
     return response.data;
   } catch (error: any) {
-    // 403 DEVICE_MISMATCH → özel hata tipi
     if (error.response?.status === 403) {
       const deviceError = new Error(
         error.response?.data?.message ??
@@ -48,7 +55,6 @@ export async function login(
       deviceError.isDeviceMismatch = true;
       throw deviceError;
     }
-    // Diğer hatalar
     const message =
       error.response?.data?.message ?? 'Sunucuya bağlanılamadı.';
     throw new Error(message);
@@ -81,71 +87,15 @@ export async function changePassword(
   }
 }
 
-// ─── Geçiş (Transaction) API Fonksiyonları ───
-
-export interface NextActionResponse {
-  suggestedType: 'GIRIS' | 'CIKIS';
-  lastTransaction?: {
-    type: 'GIRIS' | 'CIKIS';
-    timestamp: string;
-    locationName?: string;
-  } | null;
-  shift?: {
-    name: string;
-    startTime: string;
-    endTime: string;
-  } | null;
-}
-
-export interface TransactionLogRequest {
-  type: 'GIRIS' | 'CIKIS' | null;
-  timestamp: string | null;
-  latitude: number;
-  longitude: number;
-  qrContent: string | null;
-  method: 'QR' | 'GPS';
-  deviceId: string;
-  mockLocation: boolean;
-  clientId?: string;
-}
-
-export interface SyncResultResponse {
-  clientId: string;
-  status: 'SAVED' | 'REJECTED';
-  errorCode?: 'DEVICE_MISMATCH' | 'INVALID_QR' | 'LOCATION_SUSPICIOUS' | 'SYSTEM_ERROR';
-  transactionId?: number;
-}
-
-export interface TransactionLogResponse {
-  id: number;
-  type: 'GIRIS' | 'CIKIS';
-  timestamp: string;
-  locationName: string | null;
-  message: string;
-}
-
-export interface TransactionHistoryItem {
-  id: number;
-  type: 'GIRIS' | 'CIKIS';
-  timestamp: string;
-  locationName: string | null;
-  method: 'QR' | 'GPS';
-}
-
-export interface TransactionHistoryPage {
-  content: TransactionHistoryItem[];
-  totalPages: number;
-  totalElements: number;
-  last: boolean;
-}
+// ─── Geçiş (Transaction/Scan) API Fonksiyonları ───
 
 /**
- * GET /transaction/next-action
+ * GET /me/next-action
  * Son harekete göre giriş/çıkış önerisini alır.
  */
 export async function getNextAction(token: string): Promise<NextActionResponse> {
   try {
-    const response = await api.get<NextActionResponse>('/transaction/next-action', {
+    const response = await api.get<NextActionResponse>('/me/next-action', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -170,28 +120,21 @@ export async function getNextAction(token: string): Promise<NextActionResponse> 
 }
 
 /**
- * POST /transaction/log
+ * POST /scans
  * Geçiş kaydı ekler.
  */
-export async function logTransaction(
+export async function logScan(
   token: string,
-  body: TransactionLogRequest,
-): Promise<TransactionLogResponse> {
+  body: ScanRequest,
+): Promise<ScanResponse> {
   try {
-    const response = await api.post<TransactionLogResponse>('/transaction/log', body, {
+    const response = await api.post<ScanResponse>('/scans', body, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
   } catch (error: any) {
-    if (error.response?.status === 403 && error.response?.data?.errorCode === 'LOCATION_SUSPICIOUS') {
-      const locError = new Error(
-        error.response?.data?.message ?? 'Konumunuz doğrulanamadı.',
-      ) as any;
-      locError.isLocationSuspicious = true;
-      throw locError;
-    }
     if (error.response?.status === 403 && error.response?.data?.errorCode === 'DEVICE_MISMATCH') {
       const mismatchError = new Error(
         error.response?.data?.message ?? 'Cihaz uyuşmazlığı hatası.',
@@ -217,16 +160,16 @@ export async function logTransaction(
 }
 
 /**
- * GET /transaction/history
+ * GET /me/scans
  * Geçiş geçmişini sayfalı olarak alır.
  */
 export async function getHistory(
   token: string,
   page: number = 0,
   size: number = 20,
-): Promise<TransactionHistoryPage> {
+): Promise<ScanHistoryPage> {
   try {
-    const response = await api.get<TransactionHistoryPage>('/transaction/history', {
+    const response = await api.get<ScanHistoryPage>('/me/scans', {
       params: {page, size},
       headers: {
         Authorization: `Bearer ${token}`,
@@ -240,15 +183,15 @@ export async function getHistory(
 }
 
 /**
- * POST /transaction/sync
+ * POST /scans/batch
  * Çevrimdışı kayıtları topluca senkronize eder.
  */
-export async function syncTransactions(
+export async function syncScans(
   token: string,
-  body: TransactionLogRequest[],
-): Promise<SyncResultResponse[]> {
+  body: ScanRequest[],
+): Promise<BatchScanResult[]> {
   try {
-    const response = await api.post<SyncResultResponse[]>('/transaction/sync', body, {
+    const response = await api.post<BatchScanResult[]>('/scans/batch', body, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -260,23 +203,22 @@ export async function syncTransactions(
   }
 }
 
-export interface TimesheetSummaryResponse {
-  month: number;
-  year: number;
-  workedMinutes: number;
-  expectedMinutes: number;
-  lateDays: number;
-  incompleteDays: number;
-  shiftName: string | null;
-}
-
 /**
- * GET /me/timesheet-summary
+ * GET /me/summary
  * Oturumu açık kullanıcının bu ayki puantaj özetini alır.
  */
-export async function getMyTimesheetSummary(token: string): Promise<TimesheetSummaryResponse> {
+export async function getMySummary(
+  token: string,
+  year?: number,
+  month?: number,
+): Promise<SummaryResponse> {
   try {
-    const response = await api.get<TimesheetSummaryResponse>('/me/timesheet-summary', {
+    const params: any = {};
+    if (year !== undefined) params.year = year;
+    if (month !== undefined) params.month = month;
+
+    const response = await api.get<SummaryResponse>('/me/summary', {
+      params,
       headers: {
         Authorization: `Bearer ${token}`,
       },
