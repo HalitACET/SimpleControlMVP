@@ -15,6 +15,7 @@ public interface RawScanRepository extends JpaRepository<RawScan, Long> {
     Optional<RawScan> findTopByEmployeeAndExcludedFalseOrderByScannedAtDesc(Employee employee);
     long countByEmployeeAndScannedAtBetween(Employee employee, LocalDateTime start, LocalDateTime end);
     org.springframework.data.domain.Page<RawScan> findByEmployeeOrderByScannedAtDesc(Employee employee, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<RawScan> findByEmployeeAndScannedAtBetweenOrderByScannedAtDesc(Employee employee, LocalDateTime start, LocalDateTime end, org.springframework.data.domain.Pageable pageable);
 
     @org.springframework.data.jpa.repository.Query("SELECT r FROM RawScan r WHERE r.employee.firmId = :firmId " +
            "AND r.scannedAt >= :start AND r.scannedAt < :end " +

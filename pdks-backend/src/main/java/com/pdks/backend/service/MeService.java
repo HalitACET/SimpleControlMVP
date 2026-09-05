@@ -81,14 +81,22 @@ public class MeService {
                 .build();
     }
 
-    public ScanHistoryPage getScans(String authHeader, int page, int size) {
+    public ScanHistoryPage getScans(String authHeader, int page, int size, LocalDate from, LocalDate to) {
         User user = getUserFromToken(authHeader);
         if (user.getEmployee() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Personel kaydi bulunamadi.");
         }
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<RawScan> scans = rawScanRepository.findByEmployeeOrderByScannedAtDesc(user.getEmployee(), pageable);
+        Page<RawScan> scans;
+        
+        if (from != null && to != null) {
+            java.time.LocalDateTime start = from.atStartOfDay();
+            java.time.LocalDateTime end = to.plusDays(1).atStartOfDay().minusNanos(1);
+            scans = rawScanRepository.findByEmployeeAndScannedAtBetweenOrderByScannedAtDesc(user.getEmployee(), start, end, pageable);
+        } else {
+            scans = rawScanRepository.findByEmployeeOrderByScannedAtDesc(user.getEmployee(), pageable);
+        }
         
         List<ScanHistoryItem> content = scans.map(scan -> ScanHistoryItem.builder()
                 .id(scan.getId())
@@ -107,6 +115,40 @@ public class MeService {
                 .totalPages(scans.getTotalPages())
                 .last(scans.isLast())
                 .build();
+    }
+
+    public List<DailyItemResponse> getDaily(String authHeader, LocalDate from, LocalDate to) {
+        User user = getUserFromToken(authHeader);
+        if (user.getEmployee() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Personel kaydi bulunamadi.");
+        }
+
+        List<DailyItemResponse> response = new java.util.ArrayList<>();
+        
+        for (LocalDate date = to; !date.isBefore(from); date = date.minusDays(1)) {
+            List<DailyReportResponse> dailyReports = adminReportService.getDailyReport(authHeader, date, user.getEmployee().getId(), null);
+            if (dailyReports != null && !dailyReports.isEmpty()) {
+                DailyReportResponse report = dailyReports.get(0);
+                response.add(DailyItemResponse.builder()
+                        .date(report.getDate())
+                        .dayOfWeek(report.getDayOfWeek())
+                        .status(report.getStatus())
+                        .shiftName(report.getShiftName())
+                        .shiftStartTime(report.getShiftStartTime())
+                        .shiftEndTime(report.getShiftEndTime())
+                        .entryTime(report.getEntryTime())
+                        .exitTime(report.getExitTime())
+                        .workedMinutes(report.getWorkedMinutes())
+                        .lateMinutes(report.getLateMinutes())
+                        .earlyExitMinutes(report.getEarlyExitMinutes())
+                        .overtimeMinutes(report.getOvertimeMinutes())
+                        .scanCount(report.getScanCount())
+                        .isNightShift(report.isNightShift())
+                        .build());
+            }
+        }
+        
+        return response;
     }
 
     public SummaryResponse getSummary(String authHeader, Integer year, Integer month) {
