@@ -44,8 +44,7 @@ export const getQueueCount = async (): Promise<number> => {
   return queue.length;
 };
 
-// type alani eskiden vardi, ekranlar hala gonderiyor olabilir, derlemeyi bozmamak icin ekledik
-export type OfflineScanRequest = Omit<ScanRequest, 'deviceId'> & { type?: string };
+export type OfflineScanRequest = Omit<ScanRequest, 'deviceId'>;
 
 export const addToQueue = async (record: OfflineScanRequest): Promise<void> => {
   try {
@@ -97,9 +96,52 @@ export const clearRejectedRecords = async (): Promise<void> => {
   }
 };
 
+const performSync = async (token: string): Promise<void> => {
+  const queue = await getQueue();
+  if (queue.length === 0) {
+    return;
+  }
+
+  console.log(`[SYNC] Sending ${queue.length} records to server for sync.`);
+  const results = await syncScans(token, queue);
+
+  const savedClientIds: string[] = [];
+  const rejectedResults: BatchScanResult[] = [];
+  const rejectedClientIds: string[] = [];
+
+  results.forEach(res => {
+    if (res.status === 'SAVED') {
+      savedClientIds.push(res.clientId);
+    } else if (res.status === 'REJECTED') {
+      rejectedClientIds.push(res.clientId);
+      rejectedResults.push(res);
+    }
+  });
+
+  console.log(`[SYNC] Sync complete. SAVED: ${savedClientIds.length}, REJECTED: ${rejectedClientIds.length}`);
+
+  // Remove saved and rejected items from the offline queue
+  const allRemoved = [...savedClientIds, ...rejectedClientIds];
+  const remainingQueue = queue.filter(item => !item.clientId || !allRemoved.includes(item.clientId));
+  await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(remainingQueue));
+
+  // Append rejected results to pdks_rejected_records
+  if (rejectedResults.length > 0) {
+    const existingRejected = await getRejectedRecords();
+    const updatedRejected = [...existingRejected, ...rejectedResults];
+    await AsyncStorage.setItem(REJECTED_KEY, JSON.stringify(updatedRejected));
+  }
+
+  notifyQueueChanges();
+};
+
 export const syncQueue = async (token: string): Promise<void> => {
   if (isSyncing) {
-    console.log('[SYNC] syncQueue is already running. Skipping.');
+    return;
+  }
+
+  const queue = await getQueue();
+  if (queue.length === 0) {
     return;
   }
 
@@ -107,47 +149,19 @@ export const syncQueue = async (token: string): Promise<void> => {
   console.log('[SYNC] syncQueue started...');
 
   try {
-    const queue = await getQueue();
-    if (queue.length === 0) {
-      console.log('[SYNC] Queue is empty. Nothing to sync.');
-      isSyncing = false;
-      return;
-    }
-
-    console.log(`[SYNC] Sending ${queue.length} records to server for sync.`);
-    const results = await syncScans(token, queue);
-
-    const savedClientIds: string[] = [];
-    const rejectedResults: BatchScanResult[] = [];
-    const rejectedClientIds: string[] = [];
-
-    results.forEach(res => {
-      if (res.status === 'SAVED') {
-        savedClientIds.push(res.clientId);
-      } else if (res.status === 'REJECTED') {
-        rejectedClientIds.push(res.clientId);
-        rejectedResults.push(res);
-      }
-    });
-
-    console.log(`[SYNC] Sync complete. SAVED: ${savedClientIds.length}, REJECTED: ${rejectedClientIds.length}`);
-
-    // Remove saved and rejected items from the offline queue
-    const allRemoved = [...savedClientIds, ...rejectedClientIds];
-    const remainingQueue = queue.filter(item => !item.clientId || !allRemoved.includes(item.clientId));
-    await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(remainingQueue));
-
-    // Append rejected results to pdks_rejected_records
-    if (rejectedResults.length > 0) {
-      const existingRejected = await getRejectedRecords();
-      const updatedRejected = [...existingRejected, ...rejectedResults];
-      await AsyncStorage.setItem(REJECTED_KEY, JSON.stringify(updatedRejected));
-    }
-
-    notifyQueueChanges();
+    await performSync(token);
   } catch (e) {
     // Network errors, timeouts, etc.
     console.warn('[SYNC] syncQueue encountered network or server error. Queue will be kept as-is.', e);
+    console.log('[SYNC] Retrying syncQueue once after 3 seconds...');
+    
+    await new Promise<void>(resolve => setTimeout(() => resolve(), 3000));
+    
+    try {
+      await performSync(token);
+    } catch (retryErr) {
+      console.warn('[SYNC] Retry also failed. Queue will be kept as-is.', retryErr);
+    }
   } finally {
     isSyncing = false;
     console.log('[SYNC] syncQueue finished.');
