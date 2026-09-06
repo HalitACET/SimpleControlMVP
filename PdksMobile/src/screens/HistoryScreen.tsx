@@ -17,7 +17,7 @@ import {DailyItem, ScanHistoryItem} from '../types/api';
 import {getToken} from '../services/auth';
 import Card from '../components/Card';
 import {getQueue, getRejectedRecords, clearRejectedRecords, subscribeToQueueChanges} from '../services/offlineQueue';
-import {isOnline} from '../services/connectivity';
+import {isOnline, subscribeToConnectivity} from '../services/connectivity';
 
 interface ExtendedHistoryItem extends ScanHistoryItem {
   isWaiting?: boolean;
@@ -156,13 +156,34 @@ export default function HistoryScreen() {
     checkRejected();
     fetchDailyData(true);
 
+    const clearTodayCache = () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      setDayScansMap(prev => {
+        if (prev[todayStr]) {
+          const newMap = { ...prev };
+          delete newMap[todayStr];
+          return newMap;
+        }
+        return prev;
+      });
+    };
+
     const unsubscribeQueue = subscribeToQueueChanges(() => {
       fetchOfflineQueue();
       checkRejected();
+      clearTodayCache();
+    });
+
+    const unsubscribeNetwork = subscribeToConnectivity((status: boolean) => {
+      if (status) {
+        fetchDailyData(true);
+        clearTodayCache();
+      }
     });
 
     return () => {
       unsubscribeQueue();
+      unsubscribeNetwork();
     };
   }, []);
 
@@ -187,7 +208,10 @@ export default function HistoryScreen() {
     
     setExpandedDate(dateStr);
     
-    if (!dayScansMap[dateStr] && isOnline()) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const isToday = dateStr === todayStr;
+    
+    if ((!dayScansMap[dateStr] || isToday) && isOnline()) {
       try {
         setLoadingDay(dateStr);
         const token = await getToken();

@@ -33,12 +33,7 @@ export function getCurrentPosition(): Promise<{latitude: number; longitude: numb
         const mocked = (position as any).mocked || (position.coords as any).mocked || false;
         console.log(`[LOCATION] Konum alindi (High Accuracy): lat: ${position.coords.latitude}, lng: ${position.coords.longitude}, mocked: ${mocked}`);
         
-        if (!mocked) {
-          AsyncStorage.setItem('pdks_last_valid_coordinates', JSON.stringify({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          })).catch(e => console.error('[LOCATION] Failed to cache coordinates:', e));
-        }
+
 
         resolve({
           latitude: position.coords.latitude,
@@ -55,12 +50,7 @@ export function getCurrentPosition(): Promise<{latitude: number; longitude: numb
             const mocked = (position as any).mocked || (position.coords as any).mocked || false;
             console.log(`[LOCATION] Konum alindi (Low Accuracy Fallback): lat: ${position.coords.latitude}, lng: ${position.coords.longitude}, mocked: ${mocked}`);
             
-            if (!mocked) {
-              AsyncStorage.setItem('pdks_last_valid_coordinates', JSON.stringify({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-              })).catch(e => console.error('[LOCATION] Failed to cache coordinates:', e));
-            }
+
 
             resolve({
               latitude: position.coords.latitude,
@@ -70,34 +60,7 @@ export function getCurrentPosition(): Promise<{latitude: number; longitude: numb
           },
           async (error2) => {
             console.log('[LOCATION] Geolocation fallback low accuracy de basarisiz oldu. Hata:', error2);
-            
-            if (!isOnline()) {
-              console.log('[LOCATION] Offline ve konum alinamadi. Onbellek/varsayilan konuma geciliyor...');
-              try {
-                const cached = await AsyncStorage.getItem('pdks_last_valid_coordinates');
-                if (cached) {
-                  const parsed = JSON.parse(cached);
-                  console.log('[LOCATION] Son gecerli konum onbellekten yuklendi:', parsed);
-                  resolve({
-                    latitude: parsed.latitude,
-                    longitude: parsed.longitude,
-                    mocked: false,
-                  });
-                  return;
-                }
-              } catch (e) {
-                console.error('[LOCATION] Onbellek okunurken hata:', e);
-              }
-              
-              console.log('[LOCATION] Onbellek bulunamadi, varsayilan Gebze koordinati kullaniliyor.');
-              resolve({
-                latitude: 40.8023,
-                longitude: 29.4398,
-                mocked: false,
-              });
-            } else {
-              reject(new Error('LOCATION_UNAVAILABLE'));
-            }
+            reject(new Error('Konum alınamadı. Geçiş yapabilmek için konum servislerini açmanız gerekiyor.'));
           },
           {
             enableHighAccuracy: false,
