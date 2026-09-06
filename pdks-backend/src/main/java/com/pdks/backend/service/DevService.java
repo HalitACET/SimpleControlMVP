@@ -36,8 +36,7 @@ public class DevService {
         Map<String, Object> stats = new LinkedHashMap<>();
 
         // 1. Delete existing demo data
-        stats.put("deletedSuspiciousAttempts", em.createQuery("DELETE FROM SuspiciousAttempt sa WHERE sa.user.firmId = :firmId AND sa.user.employee IS NOT NULL").setParameter("firmId", firmId).executeUpdate());
-        stats.put("deletedTransactionRecords", em.createQuery("DELETE FROM TransactionRecord tr WHERE tr.user.firmId = :firmId AND tr.user.employee IS NOT NULL").setParameter("firmId", firmId).executeUpdate());
+
         stats.put("deletedDevices", em.createQuery("DELETE FROM Device d WHERE d.user.firmId = :firmId AND d.user.employee IS NOT NULL").setParameter("firmId", firmId).executeUpdate());
         stats.put("deletedRawScans", em.createQuery("DELETE FROM RawScan r WHERE r.employee.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
         stats.put("deletedUsers", em.createQuery("DELETE FROM User u WHERE u.firmId = :firmId AND u.employee IS NOT NULL").setParameter("firmId", firmId).executeUpdate());
