@@ -1,5 +1,6 @@
 package com.pdks.backend.controller;
 
+import com.pdks.backend.dto.DeviceListResponse;
 import com.pdks.backend.dto.DeviceRegisterRequest;
 import com.pdks.backend.dto.DeviceUnbindRequest;
 import com.pdks.backend.dto.DeviceVerifyResponse;
@@ -10,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Cihaz bağlama endpoint'leri.
@@ -59,9 +62,22 @@ public class DeviceController {
     @PostMapping("/admin/device-unbind")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> unbind(
+            @RequestHeader("Authorization") String authHeader,
             @Valid @RequestBody DeviceUnbindRequest request
     ) {
-        deviceService.unbind(request.getFirmId(), request.getUsername());
+        deviceService.unbind(authHeader, request.getUsername());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * GET /admin/devices
+     * Oturumdaki kullanıcının firmId'sine ait cihazları döner.
+     */
+    @GetMapping("/admin/devices")
+    public ResponseEntity<List<DeviceListResponse>> getAllDevices(
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        List<DeviceListResponse> devices = deviceService.getAllDevices(authHeader);
+        return ResponseEntity.ok(devices);
     }
 }

@@ -25,4 +25,7 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     @Query("SELECT d FROM Device d WHERE d.user.firmId = :firmId")
     List<Device> findByFirmId(@Param("firmId") String firmId);
+
+    @Query("SELECT d FROM Device d WHERE d.user.firmId = :firmId ORDER BY d.registeredAt DESC")
+    List<Device> findByFirmIdOrderByRegisteredAtDesc(@Param("firmId") String firmId);
 }

@@ -11,9 +11,6 @@ import lombok.Setter;
 @Setter
 public class DeviceUnbindRequest {
 
-    @NotBlank(message = "Firma ID boş olamaz")
-    private String firmId;
-
     @NotBlank(message = "Kullanıcı adı boş olamaz")
     private String username;
 }
