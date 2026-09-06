@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { handleApiError } from '../utils/errorHandler';
 import { Plus } from 'lucide-react';
 import FormInput from '../components/ui/form/FormInput';
 import FormSelect from '../components/ui/form/FormSelect';
@@ -8,6 +9,8 @@ import ManualScanDrawer from '../components/scans/ManualScanDrawer';
 import tableStyles from '../components/ui/table/Table.module.css';
 import dailyStyles from './DailyReport.module.css'; // For common header/filter bars
 import { useToast } from '../components/ui/toast/ToastContext';
+import { useConfirm } from '../components/ui/confirm/ConfirmDialogContext';
+import ExcludeScanModal from '../components/scans/ExcludeScanModal';
 
 interface RawScanRow {
   id: number;
@@ -21,6 +24,10 @@ interface RawScanRow {
   suspiciousReason: string | null;
   manualNote: string | null;
   createdBy: string | null;
+  excluded: boolean;
+  excludedReason: string | null;
+  excludedBy: string | null;
+  excludedAt: string | null;
 }
 
 const getLocalDateString = (d: Date) => {
@@ -66,8 +73,10 @@ export default function Scans() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [scanToExclude, setScanToExclude] = useState<RawScanRow | null>(null);
 
   const { showToast } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     // Fetch departments for filter
@@ -109,6 +118,24 @@ export default function Scans() {
       showToast('Kayıtlar yüklenemedi', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInclude = async (scan: RawScanRow) => {
+    const isConfirmed = await confirm({
+      title: 'İptali Geri Al',
+      message: 'Bu kaydın iptali geri alınacak. Kayıt yeniden hesaplamalara dahil edilecek.',
+      confirmText: 'Geri Al'
+    });
+
+    if (isConfirmed) {
+      try {
+        await api.put(`/admin/scans/${scan.id}/include`);
+        showToast('İptal işlemi geri alındı', 'success');
+        fetchData();
+      } catch (err: any) {
+        showToast(handleApiError(err), 'error');
+      }
     }
   };
 
@@ -183,11 +210,12 @@ export default function Scans() {
                 <th className={tableStyles.th}>Lokasyon</th>
                 <th className={tableStyles.th} style={{ width: '150px' }}>Durum</th>
                 <th className={tableStyles.th}>Not</th>
+                <th className={tableStyles.th} style={{ width: '100px' }}>İşlem</th>
               </tr>
             </thead>
             <tbody>
               {data.map((row) => (
-                <tr key={row.id} className={tableStyles.tr}>
+                <tr key={row.id} className={tableStyles.tr} style={{ opacity: row.excluded ? 0.6 : 1 }}>
                   <td className={tableStyles.tdMono}>{formatDateTime(row.scannedAt)}</td>
                   <td className={tableStyles.tdPrimary}>{row.employeeName}</td>
                   <td className={tableStyles.td}>
@@ -197,13 +225,21 @@ export default function Scans() {
                     {row.locationName ? row.locationName : <span className={dailyStyles.mutedText}>—</span>}
                   </td>
                   <td className={tableStyles.td}>
-                    {row.suspicious ? (
-                      <Badge variant="error" title={row.suspiciousReason || 'Doğrulanamadı'}>
-                        {getReasonTranslation(row.suspiciousReason)}
-                      </Badge>
-                    ) : (
-                      <span className={dailyStyles.mutedText}>—</span>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      {row.excluded && (
+                        <Badge variant="neutral" title={row.excludedReason || 'İptal edildi'}>
+                          İPTAL
+                        </Badge>
+                      )}
+                      {row.suspicious && (
+                        <Badge variant="error" title={row.suspiciousReason || 'Doğrulanamadı'}>
+                          {getReasonTranslation(row.suspiciousReason)}
+                        </Badge>
+                      )}
+                      {!row.excluded && !row.suspicious && (
+                        <span className={dailyStyles.mutedText}>—</span>
+                      )}
+                    </div>
                   </td>
                   <td className={tableStyles.td}>
                     {row.method === 'MANUAL' && row.manualNote ? (
@@ -217,6 +253,33 @@ export default function Scans() {
                       </div>
                     ) : (
                       <span className={dailyStyles.mutedText}>—</span>
+                    )}
+                  </td>
+                  <td className={tableStyles.td}>
+                    {row.excluded ? (
+                      <button 
+                        style={{
+                          background: 'transparent', border: '1px solid var(--color-border)', 
+                          borderRadius: 'var(--radius-sm)', padding: '4px 8px', 
+                          fontSize: 'var(--font-size-caption)', cursor: 'pointer',
+                          color: 'var(--color-text-primary)'
+                        }}
+                        onClick={() => handleInclude(row)}
+                      >
+                        Geri Al
+                      </button>
+                    ) : (
+                      <button 
+                        style={{
+                          background: 'transparent', border: '1px solid var(--color-border)', 
+                          borderRadius: 'var(--radius-sm)', padding: '4px 8px', 
+                          fontSize: 'var(--font-size-caption)', cursor: 'pointer',
+                          color: 'var(--color-error)'
+                        }}
+                        onClick={() => setScanToExclude(row)}
+                      >
+                        İptal Et
+                      </button>
                     )}
                   </td>
                 </tr>
@@ -234,6 +297,16 @@ export default function Scans() {
           fetchData();
         }}
         employees={employees}
+      />
+
+      <ExcludeScanModal
+        isOpen={!!scanToExclude}
+        onClose={() => setScanToExclude(null)}
+        onSuccess={() => {
+          setScanToExclude(null);
+          fetchData();
+        }}
+        scan={scanToExclude}
       />
     </div>
   );
