@@ -13,7 +13,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import ScreenHeader from '../components/ScreenHeader';
 import {colors, typography, spacing, radius} from '../theme';
 import {getMyDaily, getMyScans} from '../services/api';
-import {DailyItem, ScanHistoryItem} from '../types/api';
+import {DailyItem, ScanHistoryItem, ScanRequest} from '../types/api';
 import {getToken} from '../services/auth';
 import Card from '../components/Card';
 import {getQueue, getRejectedRecords, clearRejectedRecords, subscribeToQueueChanges} from '../services/offlineQueue';
@@ -22,6 +22,13 @@ import {isOnline, subscribeToConnectivity} from '../services/connectivity';
 interface ExtendedHistoryItem extends ScanHistoryItem {
   isWaiting?: boolean;
 }
+
+const getLocalDateString = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function HistoryScreen() {
   const [dailyItems, setDailyItems] = useState<DailyItem[]>([]);
@@ -42,11 +49,11 @@ export default function HistoryScreen() {
   const fetchOfflineQueue = async () => {
     try {
       const queue = await getQueue();
-      const offline = queue.map((item: any, idx: number) => ({
+      const offline = queue.map((item: ScanRequest, idx: number) => ({
         id: -(idx + 1),
-        scannedAt: item.timestamp || new Date().toISOString(),
+        scannedAt: item.scannedAt || '',
         locationName: item.method === 'QR' ? 'QR Kod (Çevrimdışı)' : 'GPS Konum (Çevrimdışı)',
-        method: item.method as 'QR' | 'GPS',
+        method: item.method,
         suspicious: false,
         excluded: false,
         isWaiting: true,
@@ -68,8 +75,8 @@ export default function HistoryScreen() {
     fromDate.setDate(toDate.getDate() - (CHUNK_DAYS - 1));
     
     return {
-      toStr: toDate.toISOString().split('T')[0],
-      fromStr: fromDate.toISOString().split('T')[0],
+      toStr: getLocalDateString(toDate),
+      fromStr: getLocalDateString(fromDate),
     };
   };
 
@@ -157,7 +164,7 @@ export default function HistoryScreen() {
     fetchDailyData(true);
 
     const clearTodayCache = () => {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString(new Date());
       setDayScansMap(prev => {
         if (prev[todayStr]) {
           const newMap = { ...prev };
@@ -208,7 +215,7 @@ export default function HistoryScreen() {
     
     setExpandedDate(dateStr);
     
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalDateString(new Date());
     const isToday = dateStr === todayStr;
     
     if ((!dayScansMap[dateStr] || isToday) && isOnline()) {
