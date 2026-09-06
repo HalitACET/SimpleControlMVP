@@ -30,7 +30,7 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(
             </option>
           ))}
         </select>
-        <div className={styles.errorText}>{error}</div>
+        {error && <div className={styles.errorText}>{error}</div>}
         {hint && <div className={styles.hint}>{hint}</div>}
       </div>
     );

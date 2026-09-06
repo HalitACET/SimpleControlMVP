@@ -1,0 +1,133 @@
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--color-bg-page);
+  padding: var(--space-xl);
+}
+
+.card {
+  width: 100%;
+  max-width: 360px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl) var(--space-xl);
+  box-shadow: 0 8px 24px rgba(28, 28, 30, 0.06);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  text-align: center;
+}
+
+.logoIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  font-size: 20px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin: 0 0 2px 0;
+}
+
+.subtitle {
+  font-size: var(--font-size-body);
+  color: var(--color-text-tertiary);
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--color-border-light);
+  margin-bottom: var(--space-xl);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.submitBtn {
+  margin-top: var(--space-xs);
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-accent);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  transition: background-color 0.15s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+}
+
+.submitBtn:active:not(:disabled) {
+  background-color: var(--color-accent-pressed);
+}
+
+.submitBtn:disabled {
+  background-color: #FDEFC4;
+  color: #C2A44B;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(28, 28, 30, 0.28);
+  border-top-color: var(--color-text-primary);
+  animation: spin 0.7s linear infinite;
+}
+
+.submitBtn:disabled .spinner {
+  border-color: rgba(194, 164, 75, 0.28);
+  border-top-color: #C2A44B;
+}
+
+.errorBox {
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  margin-bottom: var(--space-lg);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

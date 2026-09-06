@@ -18,7 +18,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
           className={`${styles.input} ${isMono ? styles.inputMono : ''} ${error ? styles.inputError : ''} ${className || ''}`}
           {...props}
         />
-        <div className={styles.errorText}>{error}</div>
+        {error && <div className={styles.errorText}>{error}</div>}
         {hint && <div className={styles.hint}>{hint}</div>}
       </div>
     );
