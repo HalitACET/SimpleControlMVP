@@ -12,7 +12,8 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useIsFocused} from '@react-navigation/native';
 import {getToken, removeToken} from '../services/auth';
-import {getNextAction, NextActionResponse} from '../services/api';
+import {getNextAction, getMyDaily} from '../services/api';
+import {NextActionResponse, DailyItem} from '../types/api';
 import {useSession, clearSession} from '../store/session';
 import {colors, typography, spacing, radius} from '../theme';
 import ScreenHeader from '../components/ScreenHeader';
@@ -20,7 +21,7 @@ import Card from '../components/Card';
 import SectionLabel from '../components/SectionLabel';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {isOnline, subscribeToConnectivity} from '../services/connectivity';
-import {getQueueCount, subscribeToQueueChanges, getQueue} from '../services/offlineQueue';
+import {getQueueCount, subscribeToQueueChanges} from '../services/offlineQueue';
 
 type Props = any;
 
@@ -52,6 +53,7 @@ export default function HomeScreen({navigation}: Props) {
   const {fullName: sessionFullName} = useSession();
   const fullName = sessionFullName || 'Personel';
   const [nextAction, setNextAction] = useState<NextActionResponse | null>(null);
+  const [dailyItem, setDailyItem] = useState<DailyItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(isOnline());
@@ -79,40 +81,11 @@ export default function HomeScreen({navigation}: Props) {
   const loadOfflineData = async () => {
     try {
       const cached = await AsyncStorage.getItem('pdks_next_action_cache');
-      let baseState: NextActionResponse = { suggestedType: 'GIRIS', lastTransaction: null };
       if (cached) {
-        baseState = JSON.parse(cached);
+        setNextAction(JSON.parse(cached));
+      } else {
+        setNextAction(null);
       }
-
-      const queue = await getQueue();
-      let currentSuggested = baseState.suggestedType;
-      let lastTx = baseState.lastTransaction;
-
-      // Sort queue ascending by timestamp
-      const sortedQueue = [...queue].sort((r1, r2) => {
-        const t1 = r1.timestamp ? new Date(r1.timestamp).getTime() : Date.now();
-        const t2 = r2.timestamp ? new Date(r2.timestamp).getTime() : Date.now();
-        return t1 - t2;
-      });
-
-      for (const item of sortedQueue) {
-        const itemType = item.type || currentSuggested;
-        currentSuggested = itemType === 'GIRIS' ? 'CIKIS' : 'GIRIS';
-        lastTx = {
-          type: itemType,
-          timestamp: item.timestamp || new Date().toISOString(),
-          locationName: 'Konum: Kaydedildi',
-        };
-      }
-
-      const computedState: NextActionResponse = {
-        suggestedType: currentSuggested,
-        lastTransaction: lastTx,
-        shift: baseState.shift,
-      };
-
-      setNextAction(computedState);
-      await AsyncStorage.setItem('pdks_next_action_cache', JSON.stringify(computedState));
     } catch (e) {
       console.error('[SYNC] Failed to load offline action state:', e);
     }
@@ -134,10 +107,24 @@ export default function HomeScreen({navigation}: Props) {
         navigation.replace('Login');
         return;
       }
+      
       const data = await getNextAction(token);
       setNextAction(data);
       // Cache data
       await AsyncStorage.setItem('pdks_next_action_cache', JSON.stringify(data));
+
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const dailyResp = await getMyDaily(token, todayStr, todayStr);
+        if (dailyResp && dailyResp.length > 0) {
+          setDailyItem(dailyResp[0]);
+        } else {
+          setDailyItem(null);
+        }
+      } catch (e) {
+        setDailyItem(null);
+      }
+
     } catch (err: any) {
       if (err.isDeviceMismatch) {
         navigation.replace('DeviceMismatch');
@@ -183,41 +170,29 @@ export default function HomeScreen({navigation}: Props) {
     return '';
   };
 
-  // Bugün geçirilen süreyi hesapla
-  const getTodayDuration = () => {
-    const last = nextAction?.lastTransaction;
-    if (!last || last.type !== 'GIRIS') {
-      return {duration: '—', since: ''};
-    }
-
-    try {
-      const txTime = new Date(last.timestamp);
-      const now = new Date();
-      
-      // Aynı gün kontrolü
-      if (txTime.toDateString() === now.toDateString()) {
-        const diffMs = now.getTime() - txTime.getTime();
-        if (diffMs > 0) {
-          const totalMins = Math.floor(diffMs / 60000);
-          const hrs = Math.floor(totalMins / 60);
-          const mins = totalMins % 60;
-          
-          // Giriş saatini biçimlendir
-          const enterTime = last.timestamp.split('T')[1].substring(0, 5);
-          
-          return {
-            duration: `${hrs} sa ${mins} dk`,
-            since: `${enterTime}'den beri`,
-          };
-        }
-      }
-    } catch (e) {
-      // pas geç
-    }
-    return {duration: '—', since: ''};
+  const formatMinutes = (totalMin: number) => {
+    if (totalMin === 0) return '0dk';
+    const hrs = Math.floor(totalMin / 60);
+    const mins = totalMin % 60;
+    if (hrs > 0 && mins > 0) return `${hrs}s ${mins}dk`;
+    if (hrs > 0) return `${hrs}s`;
+    return `${mins}dk`;
   };
 
-  const {duration: todayDuration, since: sinceText} = getTodayDuration();
+  let todayDuration = '—';
+  let sinceText = '';
+  
+  if (!online || !dailyItem) {
+    todayDuration = '—';
+  } else if (dailyItem.status === 'TATIL') {
+    todayDuration = 'Tatil';
+  } else if (dailyItem.entryTime && dailyItem.exitTime) {
+    todayDuration = dailyItem.workedMinutes ? formatMinutes(dailyItem.workedMinutes) : '—';
+    sinceText = `${formatTime(dailyItem.entryTime)} – ${formatTime(dailyItem.exitTime)}`;
+  } else if (dailyItem.entryTime && !dailyItem.exitTime) {
+    todayDuration = 'Devam ediyor';
+    sinceText = `${formatTime(dailyItem.entryTime)}'den beri`;
+  }
 
   const renderStatusCard = () => {
     if (loading) {
@@ -230,14 +205,13 @@ export default function HomeScreen({navigation}: Props) {
 
     const isInside = nextAction?.suggestedType === 'CIKIS';
     const statusText = isInside ? 'İÇERİDESİNİZ' : 'DIŞARIDASINIZ';
-    const last = nextAction?.lastTransaction;
+    const last = nextAction?.lastScan;
     
     let lastText = 'Henüz geçiş kaydı yok';
     if (last) {
-      const typeText = last.type === 'GIRIS' ? 'Giriş' : 'Çıkış';
-      const timeText = formatTime(last.timestamp);
-      const locText = last.locationName || 'GPS';
-      lastText = `Son hareket: ${typeText} · ${timeText} · ${locText}`;
+      const timeText = formatTime(last.scannedAt);
+      const locText = last.locationName || last.method || 'GPS';
+      lastText = `Son okutma: ${timeText} · ${locText}`;
     }
 
     return (
@@ -257,6 +231,12 @@ export default function HomeScreen({navigation}: Props) {
           <Text style={{color: isInside ? '#FFF' : colors.primary}}>● </Text>
           {lastText}
         </Text>
+        {!online && (
+          <Text style={styles.lastText}>
+            <Text style={{color: colors.warning}}>⚠ </Text>
+            Durum son bağlantıdan beri güncellenmedi
+          </Text>
+        )}
       </Card>
     );
   };
@@ -324,12 +304,14 @@ export default function HomeScreen({navigation}: Props) {
           <Card style={styles.bottomCard}>
             <SectionLabel text="Vardiya" />
             <Text style={styles.bottomCardValue}>
-              {nextAction?.shift 
-                ? `${nextAction.shift.startTime} – ${nextAction.shift.endTime}` 
-                : 'Vardiya atanmadı'}
+              {nextAction?.todayShift 
+                ? `${nextAction.todayShift.startTime} – ${nextAction.todayShift.endTime}` 
+                : nextAction?.holiday 
+                  ? 'Bugün tatil' 
+                  : 'Vardiya atanmadı'}
             </Text>
-            {nextAction?.shift ? (
-              <Text style={styles.bottomCardSub}>{nextAction.shift.name} vardiyası</Text>
+            {nextAction?.todayShift ? (
+              <Text style={styles.bottomCardSub}>{nextAction.todayShift.name} vardiyası</Text>
             ) : null}
           </Card>
           
