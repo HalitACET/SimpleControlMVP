@@ -33,10 +33,11 @@ export type RootStackParamList = {
     mockLocation?: boolean;
   };
   TransactionSuccess: {
-    type: 'GIRIS' | 'CIKIS';
-    timestamp: string;
+    scannedAt: string;
     locationName: string | null;
     isOffline?: boolean;
+    suspicious?: boolean;
+    suspiciousReason?: string | null;
   };
 };
 

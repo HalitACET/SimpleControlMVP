@@ -4,20 +4,29 @@ import {
   Text,
   StyleSheet,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
 import {colors, typography, spacing, radius} from '../theme';
 import Button from '../components/Button';
+import Card from '../components/Card';
 import {getFullName} from '../services/auth';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransactionSuccess'>;
 
 export default function TransactionSuccessScreen({route, navigation}: Props) {
-  const {type, timestamp, locationName, isOffline} = route.params;
+  const {scannedAt, locationName, isOffline, suspicious, suspiciousReason} = route.params;
   const [firstName, setFirstName] = useState<string>('Personel');
  
+  // Log the suspicious reason if it exists
+  useEffect(() => {
+    if (suspiciousReason) {
+      console.log('[TransactionSuccessScreen] suspiciousReason:', suspiciousReason);
+    }
+  }, [suspiciousReason]);
+
   // Kullanıcı adını al ve ilk ismini filtrele
   useEffect(() => {
     const fetchName = async () => {
@@ -69,20 +78,73 @@ export default function TransactionSuccessScreen({route, navigation}: Props) {
     return '';
   };
  
-  const isGiris = type === 'GIRIS';
-  const successText = isGiris ? 'GİRİŞ YAPILDI' : 'ÇIKIŞ YAPILDI';
-  const subtitleText = isOffline 
-    ? 'İnternet yok — kaydınız cihazda saklandı, bağlantı gelince gönderilecek.'
-    : (isGiris ? 'Artık içeridesiniz' : 'İyi günler');
-  const timeText = formatTime(timestamp);
-  const dateText = formatDate(timestamp);
-  const locationText = isOffline
-    ? 'Kaydedildi (senkronize bekliyor)'
-    : (locationName ? locationName : '● Doğrulandı (GPS)');
-
+  const isSuspicious = suspicious === true;
+  const timeText = formatTime(scannedAt);
+  const dateText = formatDate(scannedAt);
+  
   const handleDone = () => {
     navigation.popToTop();
   };
+
+  if (isSuspicious) {
+    const methodStr = (route.params as any).method === 'QR' || (locationName && locationName.toLowerCase().includes('qr')) ? 'QR' : 'GPS';
+    return (
+      <SafeAreaView style={styles.safeContainer}>
+        <StatusBar backgroundColor={colors.background} barStyle="dark-content" />
+        
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.suspiciousContainer}>
+          <View style={styles.iconCircle}>
+            <Text style={styles.alertIcon}>!</Text>
+          </View>
+
+          <Text style={styles.suspiciousTitle}>Okutma geçerli sayılmadı</Text>
+          
+          <Text style={styles.suspiciousDescription}>
+            Kaydınız oluşturuldu ancak konumunuz doğrulanamadığı için mesai hesabınıza dahil edilmeyecek.
+          </Text>
+
+          <Card style={styles.infoCard}>
+            <Text style={styles.infoCardText}>
+              Tesis alanının dışında görünüyorsunuz veya konum bilginiz güvenilir değil. Sorun devam ederse İK birimine başvurun.
+            </Text>
+          </Card>
+          
+          <View style={styles.suspiciousDetails}>
+            <View style={styles.suspiciousDetailRow}>
+              <Text style={styles.suspiciousDetailLabel}>SAAT</Text>
+              <Text style={styles.suspiciousDetailValue}>{timeText}</Text>
+            </View>
+            <View style={styles.suspiciousDetailRow}>
+              <Text style={styles.suspiciousDetailLabel}>TARİH</Text>
+              <Text style={styles.suspiciousDetailValue}>{dateText}</Text>
+            </View>
+            <View style={[styles.suspiciousDetailRow, {borderBottomWidth: 0}]}>
+              <Text style={styles.suspiciousDetailLabel}>KONUM</Text>
+              <Text style={styles.suspiciousDetailValue}>Doğrulanamadı ({methodStr})</Text>
+            </View>
+          </View>
+          
+        </ScrollView>
+        <View style={styles.footer}>
+          <Button
+            title="ANA SAYFAYA DÖN"
+            onPress={handleDone}
+            variant="primary"
+            style={styles.actionBtn}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Normal Başarı Ekranı
+  const successText = 'OKUTMA KAYDEDİLDİ';
+  const subtitleText = isOffline 
+    ? 'İnternet yok — kaydınız cihazda saklandı, bağlantı gelince gönderilecek.'
+    : 'İşleminiz başarıyla tamamlandı.';
+  const locationText = isOffline
+    ? 'Kaydedildi (senkronize bekliyor)'
+    : (locationName ? locationName : '● Doğrulandı (GPS)');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -95,7 +157,7 @@ export default function TransactionSuccessScreen({route, navigation}: Props) {
 
         <Text style={styles.successTitle}>{successText}</Text>
         <Text style={styles.successSubtitle}>{subtitleText}</Text>
-        
+
         <View style={styles.detailsCard}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>SAAT</Text>
@@ -107,7 +169,7 @@ export default function TransactionSuccessScreen({route, navigation}: Props) {
             <Text style={styles.detailValue}>{dateText}</Text>
           </View>
           
-          <View style={styles.detailRow}>
+          <View style={[styles.detailRow, {borderBottomWidth: 0}]}>
             <Text style={styles.detailLabel}>KONUM</Text>
             <Text style={styles.detailValue}>{locationText}</Text>
           </View>
@@ -119,7 +181,7 @@ export default function TransactionSuccessScreen({route, navigation}: Props) {
       </View>
 
       <Button
-        title="Ana Sayfaya Dön"
+        title="ANA SAYFAYA DÖN"
         onPress={handleDone}
         variant="outline"
         style={styles.doneButton}
@@ -130,6 +192,100 @@ export default function TransactionSuccessScreen({route, navigation}: Props) {
 }
 
 const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flex: 1,
+  },
+  suspiciousContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 1.5,
+    borderColor: '#FDE68A', // açık sarı/amber sınır
+    backgroundColor: '#FEF3C7', // açık sarı/amber zemin
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+    marginTop: spacing.md,
+  },
+  alertIcon: {
+    fontSize: 48,
+    fontFamily: typography.fontFamilyBold,
+    color: colors.warning,
+  },
+  suspiciousTitle: {
+    fontFamily: typography.fontFamilyBold,
+    fontSize: 22,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  suspiciousDescription: {
+    fontFamily: typography.fontFamily,
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: spacing.xl,
+    paddingHorizontal: spacing.sm,
+  },
+  infoCard: {
+    width: '100%',
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.xl,
+    justifyContent: 'center',
+  },
+  infoCardText: {
+    fontFamily: typography.fontFamilyMedium,
+    fontSize: 13,
+    color: colors.textPrimary,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  suspiciousDetails: {
+    width: '100%',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  suspiciousDetailRow: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  suspiciousDetailLabel: {
+    fontSize: 11,
+    fontFamily: typography.fontFamilyMedium,
+    color: colors.textSecondary,
+    letterSpacing: 1,
+  },
+  suspiciousDetailValue: {
+    fontSize: 16,
+    fontFamily: typography.fontFamilyBold,
+    color: colors.textPrimary,
+    marginTop: 2,
+  },
+  footer: {
+    width: '100%',
+    padding: spacing.lg,
+  },
+  actionBtn: {
+    width: '100%',
+  },
+
+  // Normal Başarı Ekranı Stilleri
   container: {
     flex: 1,
     backgroundColor: colors.success,
@@ -150,7 +306,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
-    // Hafif parlama efekti
     shadowColor: '#000',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.1,
@@ -172,9 +327,9 @@ const styles = StyleSheet.create({
   successSubtitle: {
     fontSize: 15,
     fontFamily: typography.fontFamilyMedium,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
     marginBottom: spacing.xl,
   },
   detailsCard: {
