@@ -154,18 +154,26 @@ public class ScanService {
                     if (loc != null && loc.isActive()) return loc;
                 }
             } else if (request.getMethod() == TransactionMethod.GPS && request.getLatitude() != null && request.getLongitude() != null) {
-                List<Location> firmLocations = locationRepository.findByFirmId(firmId);
+                List<Location> firmLocations = locationRepository.findByFirmIdAndActiveTrue(firmId);
+                Location bestLocation = null;
+                double minDistance = Double.MAX_VALUE;
+
                 for (Location loc : firmLocations) {
-                    if (loc.isActive() && loc.getLatitude() != null && loc.getLongitude() != null) {
+                    if (loc.getLatitude() != null && loc.getLongitude() != null) {
                         double dist = GeoUtils.distanceMeters(
                                 request.getLatitude(), request.getLongitude(),
                                 loc.getLatitude(), loc.getLongitude()
                         );
                         int rad = loc.getRadiusMeters() != null ? loc.getRadiusMeters() : 100;
-                        if (dist <= rad) {
-                            return loc;
+                        if (dist <= rad && dist < minDistance) {
+                            minDistance = dist;
+                            bestLocation = loc;
                         }
                     }
+                }
+                
+                if (bestLocation != null) {
+                    return bestLocation;
                 }
             }
         } catch (Exception e) {
