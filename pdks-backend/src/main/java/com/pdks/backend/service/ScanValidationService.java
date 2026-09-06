@@ -23,9 +23,6 @@ public class ScanValidationService {
     @Value("${fraud.max-speed-mps:42}")
     private double maxSpeedMps;
 
-    @Value("${fraud.frozen-coordinate-check:true}")
-    private boolean frozenCoordinateCheck;
-
     public ScanValidationResult validateScan(ScanRequest request, Location resolvedLocation, RawScan lastScan) {
         try {
             if (request == null || request.getLatitude() == null || request.getLongitude() == null) {
@@ -77,12 +74,7 @@ public class ScanValidationService {
                     return new ScanValidationResult(true, SuspiciousReason.IMPOSSIBLE_SPEED);
                 }
 
-                if (frozenCoordinateCheck) {
-                    if (isExactlySameCoordinate(request.getLatitude(), lastScan.getLatitude()) &&
-                        isExactlySameCoordinate(request.getLongitude(), lastScan.getLongitude())) {
-                        return new ScanValidationResult(true, SuspiciousReason.FROZEN_COORDINATE);
-                    }
-                }
+
             }
 
             return new ScanValidationResult(false, null);
@@ -91,12 +83,5 @@ public class ScanValidationService {
             log.error("Unexpected error during scan validation. Marking as suspicious (fail-closed).", ex);
             return new ScanValidationResult(true, null);
         }
-    }
-
-    private boolean isExactlySameCoordinate(Double val1, Double val2) {
-        if (val1 == null || val2 == null) return false;
-        double rounded1 = Math.round(val1 * 1_000_000.0) / 1_000_000.0;
-        double rounded2 = Math.round(val2 * 1_000_000.0) / 1_000_000.0;
-        return Double.compare(rounded1, rounded2) == 0;
-    }
+}
 }
