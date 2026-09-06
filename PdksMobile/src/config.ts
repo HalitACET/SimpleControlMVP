@@ -9,4 +9,4 @@
  * Emülatör kullanıyorsan: http://10.0.2.2:8080
  * Gerçek cihaz kullanıyorsan: http://192.168.X.X:8080  ← BU SATIRI GÜNCELLE
  */
-export const API_BASE_URL = 'http://192.168.1.34:8080';
+export const API_BASE_URL = 'http://192.168.1.101:8080';

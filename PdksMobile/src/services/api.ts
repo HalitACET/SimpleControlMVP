@@ -7,6 +7,7 @@ import {
   NextActionResponse,
   ScanHistoryPage,
   SummaryResponse,
+  DailyItem,
 } from '../types/api';
 
 const api = axios.create({
@@ -178,6 +179,68 @@ export async function getHistory(
     return response.data;
   } catch (error: any) {
     const message = error.response?.data?.message ?? 'Geçmiş listesi yüklenemedi.';
+    throw new Error(message);
+  }
+}
+
+/**
+ * GET /me/daily
+ * Günlük özet geçmişini alır.
+ */
+export async function getMyDaily(
+  token: string,
+  from: string,
+  to: string,
+): Promise<DailyItem[]> {
+  try {
+    const response = await api.get<DailyItem[]>('/me/daily', {
+      params: {from, to},
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      const authError = new Error('Oturum süresi dolmuş veya geçersiz.') as any;
+      authError.isUnauthorized = true;
+      throw authError;
+    }
+    const message = error.response?.data?.message ?? 'Günlük özet alınamadı.';
+    throw new Error(message);
+  }
+}
+
+/**
+ * GET /me/scans (Tarih filtreli)
+ * Geçiş geçmişini belirli bir tarih aralığı için sayfalı olarak alır.
+ */
+export async function getMyScans(
+  token: string,
+  page: number = 0,
+  size: number = 20,
+  from?: string,
+  to?: string,
+): Promise<ScanHistoryPage> {
+  try {
+    const params: any = {page, size};
+    if (from !== undefined) params.from = from;
+    if (to !== undefined) params.to = to;
+    
+    const response = await api.get<ScanHistoryPage>('/me/scans', {
+      params,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      const authError = new Error('Oturum süresi dolmuş veya geçersiz.') as any;
+      authError.isUnauthorized = true;
+      throw authError;
+    }
+    const message = error.response?.data?.message ?? 'Ham okutmalar alınamadı.';
     throw new Error(message);
   }
 }

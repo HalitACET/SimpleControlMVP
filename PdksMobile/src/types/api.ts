@@ -61,3 +61,25 @@ export interface SummaryResponse {
   totalOvertimeMinutes: number;
   workGroupName: string | null;
 }
+
+export type DailyStatus =
+  | 'NORMAL' | 'EKSIK_CIKIS' | 'DEVAMSIZ'
+  | 'TATIL' | 'GRUP_ATANMAMIS' | 'GELECEK';
+
+export interface DailyItem {
+  date: string;
+  dayOfWeek: number;
+  status: DailyStatus;
+  shiftName: string | null;
+  shiftStartTime: string | null;
+  shiftEndTime: string | null;
+  entryTime: string | null;
+  exitTime: string | null;
+  workedMinutes: number | null;
+  lateMinutes: number | null;
+  earlyExitMinutes: number | null;
+  overtimeMinutes: number | null;
+  scanCount: number;
+  nightShift: boolean;
+}
+
