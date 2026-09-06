@@ -21,7 +21,7 @@ export default function Sidebar() {
         { label: 'Personel', path: '/employees', icon: <Users size={18} /> },
         { label: 'Departmanlar', path: '/departments', icon: <Users size={18} /> },
         { label: 'Cihazlar', path: '#cihazlar', icon: <Cpu size={18} /> },
-        { label: 'Lokasyonlar', path: '#lokasyonlar', icon: <MapPin size={18} /> },
+        { label: 'Lokasyonlar', path: '/locations', icon: <MapPin size={18} /> },
         { label: 'Vardiyalar', path: '/shifts', icon: <CalendarDays size={18} /> },
         { label: 'Çalışma Grupları', path: '/work-groups', icon: <Layers size={18} /> },
         { label: 'Tatiller', path: '/holidays', icon: <Sun size={18} /> },

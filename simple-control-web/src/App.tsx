@@ -11,6 +11,7 @@ import Scans from './pages/Scans';
 import UserAccounts from './pages/UserAccounts';
 import Departments from './pages/Departments';
 import DepartmentDetail from './pages/DepartmentDetail';
+import Locations from './pages/locations/Locations';
 import DailyReport from './pages/DailyReport';
 import MonthlyReport from './pages/MonthlyReport';
 import MonthlyReportDetail from './pages/MonthlyReportDetail';
@@ -43,6 +44,7 @@ function App() {
             <Route path="/employees" element={<Employees />} />
             <Route path="/departments" element={<Departments />} />
             <Route path="/departments/:id" element={<DepartmentDetail />} />
+            <Route path="/locations" element={<Locations />} />
             <Route path="/shifts" element={<Shifts />} />
             <Route path="/work-groups" element={<WorkGroups />} />
             <Route path="/holidays" element={<Holidays />} />

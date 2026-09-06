@@ -1,0 +1,116 @@
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  padding: var(--space-lg);
+  flex: 1;
+}
+
+.header {
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: var(--font-size-heading-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.code {
+  font-size: var(--font-size-label);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+}
+
+.details {
+  margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-primary-variant);
+}
+
+.detailIcon {
+  color: var(--color-text-secondary);
+}
+
+.qrContainer {
+  margin-top: var(--space-lg);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-md);
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-md);
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.qrContainer:hover .qrOverlay {
+  opacity: 1;
+}
+
+.qrOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xs);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.actions {
+  display: flex;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.actionBtn {
+  flex: 1;
+  padding: var(--space-md);
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-body-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  transition: background-color 0.2s ease;
+}
+
+.actionBtn:hover {
+  background-color: var(--color-surface-sunken);
+}
+
+.editBtn {
+  color: var(--color-text-primary);
+  border-right: 1px solid var(--color-border-light);
+}
+
+.deleteBtn {
+  color: var(--color-danger);
+}
