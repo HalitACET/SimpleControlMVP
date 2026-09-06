@@ -27,6 +27,10 @@ interface ExistingAccount {
   active: boolean;
 }
 
+interface UserResponse {
+  employeeId: number;
+}
+
 interface EmployeeDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -86,7 +90,7 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
         setAccountLoading(true);
         api.get('/admin/users-v2')
           .then(res => {
-            const found = res.data.find((u: any) => u.employeeId === employeeToEdit.id);
+            const found = res.data.find((u: UserResponse) => u.employeeId === employeeToEdit.id);
             setExistingAccount(found || null);
           })
           .catch(() => setExistingAccount(null))

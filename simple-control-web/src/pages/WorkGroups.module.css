@@ -1,0 +1,33 @@
+.errorBanner {
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-radius: var(--radius-sm);
+}
+
+.actionRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-lg);
+}
+
+.newGroupButton {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(28,28,30,.10);
+}
+
+.skeletonName { width: 150px; }
+.skeletonDuration { width: 80px; }
+.skeletonDays { width: 60px; }
+.skeletonCount { width: 50px; }

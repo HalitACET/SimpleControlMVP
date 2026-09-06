@@ -1,0 +1,30 @@
+.container {
+  padding: var(--space-xl);
+}
+
+.descriptionText {
+  margin-bottom: var(--space-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
+.searchContainer {
+  margin-bottom: var(--space-lg);
+}
+
+.colCardNo,
+.colStatus {
+  width: 110px;
+}
+
+.colPassword {
+  width: 150px;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.mutedDash {
+  color: var(--color-text-secondary);
+}

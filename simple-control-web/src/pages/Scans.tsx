@@ -56,6 +56,18 @@ const getReasonTranslation = (reason: string | null) => {
   }
 };
 
+interface DepartmentResponse {
+  id: number;
+  name: string;
+}
+
+interface EmployeeResponse {
+  id: number;
+  firstName: string;
+  lastName: string;
+  cardNo: string;
+}
+
 export default function Scans() {
   const defaultEndDate = new Date();
   const defaultStartDate = new Date();
@@ -82,7 +94,7 @@ export default function Scans() {
     // Fetch departments for filter
     api.get('/admin/departments')
       .then(res => {
-        setDepartments(res.data.map((d: any) => ({
+        setDepartments(res.data.map((d: DepartmentResponse) => ({
           value: d.id.toString(),
           label: d.name
         })));
@@ -92,7 +104,7 @@ export default function Scans() {
     // Fetch employees for filter & drawer
     api.get('/admin/employees')
       .then(res => {
-        setEmployees(res.data.map((e: any) => ({
+        setEmployees(res.data.map((e: EmployeeResponse) => ({
           value: e.id.toString(),
           label: `${e.firstName} ${e.lastName} (${e.cardNo})`
         })));

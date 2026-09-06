@@ -39,6 +39,17 @@ const getLocalDateString = (d: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+interface DepartmentResponse {
+  id: number;
+  name: string;
+}
+
+interface EmployeeResponse {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
 export default function DailyReport() {
   const [date, setDate] = useState(getLocalDateString(new Date()));
   const [employeeId, setEmployeeId] = useState('');
@@ -63,7 +74,7 @@ export default function DailyReport() {
   const fetchDepartments = async () => {
     try {
       const res = await api.get('/admin/departments');
-      setDepartments(res.data.map((d: any) => ({ value: d.id.toString(), label: d.name })));
+      setDepartments(res.data.map((d: DepartmentResponse) => ({ value: d.id.toString(), label: d.name })));
     } catch (err) {
       console.error(err);
     }
@@ -72,7 +83,7 @@ export default function DailyReport() {
   const fetchEmployees = async () => {
     try {
       const res = await api.get('/admin/employees');
-      const opts = res.data.map((e: any) => ({
+      const opts = res.data.map((e: EmployeeResponse) => ({
         value: e.id.toString(),
         label: `${e.firstName} ${e.lastName}`
       }));

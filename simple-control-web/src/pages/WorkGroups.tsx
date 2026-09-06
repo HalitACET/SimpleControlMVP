@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { handleApiError } from '../utils/errorHandler';
 import WorkGroupDrawer from '../components/work-groups/WorkGroupDrawer';
-import styles from '../components/ui/table/Table.module.css';
+import tableStyles from '../components/ui/table/Table.module.css';
+import styles from './WorkGroups.module.css';
 
 export interface WorkGroupDay {
   dayOfWeek: number;
@@ -92,59 +93,46 @@ export default function WorkGroups() {
   return (
     <div>
       {error && (
-        <div style={{ marginBottom: 'var(--space-md)', padding: 'var(--space-md)', backgroundColor: 'var(--color-error-bg)', color: 'var(--color-error)', borderRadius: 'var(--radius-sm)' }}>
+        <div className={styles.errorBanner}>
           {error}
         </div>
       )}
       
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-lg)' }}>
+      <div className={styles.actionRow}>
         <button
           onClick={handleNewGroup}
-          style={{
-            height: '34px',
-            padding: '0 14px',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--color-accent)',
-            color: 'var(--color-text-primary)',
-            fontSize: 'var(--font-size-body)',
-            fontWeight: 'var(--font-weight-bold)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            cursor: 'pointer',
-            boxShadow: '0 1px 2px rgba(28,28,30,.10)'
-          }}
+          className={styles.newGroupButton}
         >
           + Yeni Çalışma Grubu
         </button>
       </div>
 
-      <div className={styles.card}>
-        <table className={styles.table}>
-          <thead className={styles.thead}>
+      <div className={tableStyles.card}>
+        <table className={tableStyles.table}>
+          <thead className={tableStyles.thead}>
             <tr>
-              <th className={styles.th}>Grup Adı</th>
-              <th className={styles.th}>Günlük Çalışma Süresi</th>
-              <th className={styles.th}>Çalışılan Gün Sayısı</th>
-              <th className={styles.th}>Personel Sayısı</th>
+              <th className={tableStyles.th}>Grup Adı</th>
+              <th className={tableStyles.th}>Günlük Çalışma Süresi</th>
+              <th className={tableStyles.th}>Çalışılan Gün Sayısı</th>
+              <th className={tableStyles.th}>Personel Sayısı</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               // SKELETON
               Array.from({ length: 3 }).map((_, i) => (
-                <tr key={i} className={styles.tr}>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '150px' }}></div></td>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '80px' }}></div></td>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '60px' }}></div></td>
-                  <td className={styles.td}><div className={styles.skeleton} style={{ width: '50px' }}></div></td>
+                <tr key={i} className={tableStyles.tr}>
+                  <td className={tableStyles.td}><div className={`${tableStyles.skeleton} ${styles.skeletonName}`}></div></td>
+                  <td className={tableStyles.td}><div className={`${tableStyles.skeleton} ${styles.skeletonDuration}`}></div></td>
+                  <td className={tableStyles.td}><div className={`${tableStyles.skeleton} ${styles.skeletonDays}`}></div></td>
+                  <td className={tableStyles.td}><div className={`${tableStyles.skeleton} ${styles.skeletonCount}`}></div></td>
                 </tr>
               ))
             ) : workGroups.length === 0 ? (
               // EMPTY STATE
               <tr>
                 <td colSpan={4}>
-                  <div className={styles.emptyState}>
+                  <div className={tableStyles.emptyState}>
                     Henüz çalışma grubu eklenmemiş
                   </div>
                 </td>
@@ -155,7 +143,7 @@ export default function WorkGroups() {
                 return (
                   <tr 
                     key={group.id} 
-                    className={styles.tr}
+                    className={tableStyles.tr}
                     onClick={() => handleEditGroup(group)}
                     tabIndex={0}
                     onKeyDown={(e) => {
@@ -163,16 +151,16 @@ export default function WorkGroups() {
                     }}
                     role="button"
                   >
-                    <td className={styles.tdPrimary}>
+                    <td className={tableStyles.tdPrimary}>
                       {group.name}
                     </td>
-                    <td className={styles.td}>
+                    <td className={tableStyles.td}>
                       {formatDuration(group.dailyWorkMinutes)}
                     </td>
-                    <td className={styles.td}>
+                    <td className={tableStyles.td}>
                       {group.activeDaysCount} / 7
                     </td>
-                    <td className={styles.td}>
+                    <td className={tableStyles.td}>
                       {group.employeeCount}
                     </td>
                   </tr>

@@ -6,6 +6,7 @@ import { EditUserDrawer, type UserAccount } from '../components/users/UserAccoun
 import { useToast } from '../components/ui/toast/ToastContext';
 import SearchInput from '../components/ui/searchinput/SearchInput';
 import { normalizeTurkishString } from '../utils/stringUtils';
+import styles from './UserAccounts.module.css';
 
 export default function UserAccounts() {
   const [users, setUsers] = useState<UserAccount[]>([]);
@@ -52,14 +53,14 @@ export default function UserAccounts() {
   });
 
   return (
-    <div style={{ padding: 'var(--space-xl)' }}>
+    <div className={styles.container}>
       {/* Açıklama */}
-      <div style={{ marginBottom: 'var(--space-lg)', color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-body)' }}>
+      <div className={styles.descriptionText}>
         Hesaplar personel kaydı üzerinden oluşturulur. Bu ekrandan şifre sıfırlayabilir ve erişimi kapatabilirsiniz.
       </div>
 
       {/* Arama */}
-      <div style={{ marginBottom: 'var(--space-lg)' }}>
+      <div className={styles.searchContainer}>
         <SearchInput
           value={searchTerm}
           onChange={setSearchTerm}
@@ -83,18 +84,17 @@ export default function UserAccounts() {
               <tr>
                 <th className={tableStyles.th}>Giriş Kimliği</th>
                 <th className={tableStyles.th}>Personel</th>
-                <th className={tableStyles.th} style={{ width: '110px' }}>Kart No</th>
-                <th className={tableStyles.th} style={{ width: '110px' }}>Durum</th>
-                <th className={tableStyles.th} style={{ width: '150px' }}>Şifre Değiştirmeli</th>
+                <th className={`${tableStyles.th} ${styles.colCardNo}`}>Kart No</th>
+                <th className={`${tableStyles.th} ${styles.colStatus}`}>Durum</th>
+                <th className={`${tableStyles.th} ${styles.colPassword}`}>Şifre Değiştirmeli</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map(user => (
                 <tr
                   key={user.id}
-                  className={tableStyles.tr}
+                  className={`${tableStyles.tr} ${styles.clickableRow}`}
                   onClick={() => setSelectedUser(user)}
-                  style={{ cursor: 'pointer' }}
                 >
                   <td className={tableStyles.tdMono}>{user.username}</td>
                   <td className={tableStyles.tdPrimary}>{user.employeeName}</td>
@@ -107,7 +107,7 @@ export default function UserAccounts() {
                   <td className={tableStyles.td}>
                     {user.mustChangePassword
                       ? <Badge variant="warning">Beklemede</Badge>
-                      : <span style={{ color: 'var(--color-text-secondary)' }}>—</span>}
+                      : <span className={styles.mutedDash}>—</span>}
                   </td>
                 </tr>
               ))}

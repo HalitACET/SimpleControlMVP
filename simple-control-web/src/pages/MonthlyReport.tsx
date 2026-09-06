@@ -47,6 +47,11 @@ const getLocalMonthString = (d: Date) => {
   return `${year}-${month}`;
 };
 
+interface DepartmentResponse {
+  id: number;
+  name: string;
+}
+
 export default function MonthlyReport() {
   const [monthStr, setMonthStr] = useState(getLocalMonthString(new Date()));
   const [departmentId, setDepartmentId] = useState('');
@@ -65,7 +70,7 @@ export default function MonthlyReport() {
   useEffect(() => {
     api.get('/admin/departments')
       .then(res => {
-        setDepartments(res.data.map((d: any) => ({
+        setDepartments(res.data.map((d: DepartmentResponse) => ({
           value: d.id.toString(),
           label: d.name
         })));
