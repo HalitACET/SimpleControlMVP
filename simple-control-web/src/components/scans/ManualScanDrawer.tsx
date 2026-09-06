@@ -5,6 +5,7 @@ import FormInput from '../ui/form/FormInput';
 import { useToast } from '../ui/toast/ToastContext';
 import Drawer from '../ui/drawer/Drawer';
 import drawerStyles from '../ui/drawer/Drawer.module.css';
+import styles from './ManualScanDrawer.module.css';
 
 interface ManualScanDrawerProps {
   isOpen: boolean;
@@ -55,8 +56,8 @@ export default function ManualScanDrawer({ isOpen, onClose, onSuccess, employees
       
       const payload = {
         employeeId: parseInt(employeeId, 10),
-        scanTime: scanTime + ':00', // pad seconds for LocalDateTime parsing
-        note
+        scannedAt: scanTime + ':00', // pad seconds for LocalDateTime parsing
+        manualNote: note
       };
       
       await api.post('/admin/scans/manual', payload);
@@ -117,18 +118,18 @@ export default function ManualScanDrawer({ isOpen, onClose, onSuccess, employees
           required
         />
         
-        <div style={{ marginBottom: 'var(--space-xl)' }}>
-          <label style={{ display: 'block', fontSize: 'var(--font-size-label)', fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--space-sm)' }}>
-            Açıklama <span style={{ color: 'var(--color-error)' }}>*</span>
+        <div className={styles.noteContainer}>
+          <label className={styles.noteLabel}>
+            Açıklama <span className={styles.requiredMark}>*</span>
           </label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             required
             rows={3}
-            style={{ width: '100%', padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', fontFamily: 'inherit', resize: 'vertical' }}
+            className={styles.noteTextarea}
           />
-          <div style={{ fontSize: 'var(--font-size-caption)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-xs)' }}>
+          <div className={styles.noteHint}>
             Manuel kayıt bir istisnadır, sebebi kayıt altına alınır.
           </div>
         </div>

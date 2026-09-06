@@ -117,6 +117,10 @@ public class ScanService {
     }
 
     private RawScan processSingleScan(User user, ScanRequest request) {
+        if (user.getEmployee() != null && !user.getEmployee().isActive()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Personel kaydi pasif.");
+        }
+
         Location location = resolveLocation(user.getFirmId(), request);
         RawScan lastScan = rawScanRepository.findTopByEmployeeOrderByScannedAtDesc(user.getEmployee()).orElse(null);
         ScanValidationResult validation = scanValidationService.validateScan(request, location, lastScan);

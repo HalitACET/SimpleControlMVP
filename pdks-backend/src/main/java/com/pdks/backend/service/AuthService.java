@@ -58,6 +58,11 @@ public class AuthService {
             throw unauthorized();
         }
 
+        // Personel aktiflik kontrolü
+        if (user.getEmployee() != null && !user.getEmployee().isActive()) {
+            throw unauthorized();
+        }
+
         // ─── Rol ve Cihaz Kontrolleri ───────────────────
         boolean deviceRegistered = false;
 

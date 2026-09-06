@@ -126,12 +126,17 @@ public class EmployeeService {
 
     // ─── Silme (soft delete) ──────────────────────────────────────────────────
 
-    /** Gerçek silme yapılmaz — active = false yapılır */
+    @org.springframework.transaction.annotation.Transactional
     public void deactivateEmployee(String authHeader, Long id) {
         String firmId = extractFirmId(authHeader);
         Employee employee = findOwnedEmployee(firmId, id);
         employee.setActive(false);
         employeeRepository.save(employee);
+        
+        userRepository.findByEmployeeId(employee.getId()).ifPresent(user -> {
+            user.setActive(false);
+            userRepository.save(user);
+        });
     }
 
     // ─── Yardımcı Metotlar ────────────────────────────────────────────────────
