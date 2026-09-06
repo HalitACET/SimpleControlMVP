@@ -9,4 +9,7 @@ import java.util.Optional;
 public interface LocationRepository extends JpaRepository<Location, Long> {
     Optional<Location> findByFirmIdAndCode(String firmId, String code);
     List<Location> findByFirmId(String firmId);
+    List<Location> findByFirmIdAndActiveTrue(String firmId);
+    Optional<Location> findByIdAndFirmIdAndActiveTrue(Long id, String firmId);
+    boolean existsByFirmIdAndCodeAndActiveTrue(String firmId, String code);
 }
