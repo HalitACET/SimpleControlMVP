@@ -2,6 +2,7 @@ package com.pdks.backend.service;
 
 import com.pdks.backend.dto.DailyAttendanceDto;
 import com.pdks.backend.dto.DailyAttendanceStatus;
+import com.pdks.backend.dto.WorkIntervalDto;
 import com.pdks.backend.entity.Employee;
 import com.pdks.backend.entity.Holiday;
 import com.pdks.backend.entity.RawScan;
@@ -107,7 +108,8 @@ public class AttendanceCalculationService {
         DailyAttendanceDto.DailyAttendanceDtoBuilder builder = DailyAttendanceDto.builder()
                 .date(w.getDate())
                 .dayOfWeek(w.getDayOfWeek())
-                .suspiciousScanCount(w.getSuspiciousScanCount());
+                .suspiciousScanCount(w.getSuspiciousScanCount())
+                .intervals(new ArrayList<>());
 
         if (w.getDate().isAfter(LocalDate.now())) {
             builder.status(DailyAttendanceStatus.GELECEK);
@@ -154,22 +156,69 @@ public class AttendanceCalculationService {
             return buildWithZeros(builder);
         }
 
+        // Ciftler halinde eslestirme: (0,1), (2,3)... Tek sayida okutmada son okutma eslesmeden kalir.
+        int pairCount = filtered.size() / 2;
+        boolean hasUnpairedScan = filtered.size() % 2 == 1;
+
         LocalDateTime entryTime = filtered.get(0).getScannedAt();
-        LocalDateTime exitTime = filtered.size() > 1 ? filtered.get(filtered.size() - 1).getScannedAt() : null;
+        LocalDateTime exitTime = pairCount > 0 ? filtered.get(pairCount * 2 - 1).getScannedAt() : null;
 
         builder.entryTime(entryTime);
         builder.exitTime(exitTime);
 
         if (builder.build().getStatus() == null) {
-            builder.status(exitTime == null ? DailyAttendanceStatus.EKSIK_CIKIS : DailyAttendanceStatus.NORMAL);
+            builder.status(hasUnpairedScan ? DailyAttendanceStatus.EKSIK_CIKIS : DailyAttendanceStatus.NORMAL);
         }
 
+        Shift shift = w.getShift();
+        boolean nightShift = shift != null && shift.getStartTime().isAfter(shift.getEndTime());
+
+        // Mola penceresi LocalTime tutuluyor; calisma araliklariyla karsilastirmak icin takvim gunune yerlestirilir.
+        // Gece vardiyasinda mola saati vardiya baslangicindan onceyse gece yarisi gecilmis demektir -> ertesi gun.
+        LocalDateTime breakWindowStart = null;
+        LocalDateTime breakWindowEnd = null;
+        if (shift != null && shift.getBreakStart() != null && shift.getBreakEnd() != null) {
+            LocalDate breakDate = (nightShift && shift.getBreakStart().isBefore(shift.getStartTime()))
+                    ? w.getDate().plusDays(1)
+                    : w.getDate();
+            breakWindowStart = breakDate.atTime(shift.getBreakStart());
+            breakWindowEnd = breakDate.atTime(shift.getBreakEnd());
+        }
+
+        List<WorkIntervalDto> intervals = new ArrayList<>();
+        int workedMinutes = 0;
+
+        for (int i = 0; i + 1 < filtered.size(); i += 2) {
+            LocalDateTime intervalStart = filtered.get(i).getScannedAt();
+            LocalDateTime intervalEnd = filtered.get(i + 1).getScannedAt();
+
+            long rawMinutes = ChronoUnit.MINUTES.between(intervalStart, intervalEnd);
+            long netMinutes = Math.max(0, rawMinutes
+                    - overlapMinutes(intervalStart, intervalEnd, breakWindowStart, breakWindowEnd));
+
+            intervals.add(WorkIntervalDto.builder()
+                    .entryTime(intervalStart)
+                    .exitTime(intervalEnd)
+                    .minutes((int) netMinutes)
+                    .build());
+            workedMinutes += (int) netMinutes;
+        }
+
+        if (hasUnpairedScan) {
+            intervals.add(WorkIntervalDto.builder()
+                    .entryTime(filtered.get(filtered.size() - 1).getScannedAt())
+                    .exitTime(null)
+                    .minutes(0)
+                    .build());
+        }
+
+        builder.intervals(intervals);
+
         // Calculation logic applies if we have a shift and not holiday/no-group
-        if (w.getShift() != null && !w.isHoliday() && w.isHasWorkGroup()) {
-            Shift shift = w.getShift();
+        if (shift != null && !w.isHoliday() && w.isHasWorkGroup()) {
             LocalDateTime shiftStart = w.getDate().atTime(shift.getStartTime());
-            LocalDateTime shiftEnd = builder.build().isNightShift() 
-                    ? w.getDate().plusDays(1).atTime(shift.getEndTime()) 
+            LocalDateTime shiftEnd = nightShift
+                    ? w.getDate().plusDays(1).atTime(shift.getEndTime())
                     : w.getDate().atTime(shift.getEndTime());
 
             int lateMinutes = 0;
@@ -189,25 +238,32 @@ public class AttendanceCalculationService {
             builder.earlyExitMinutes(earlyExitMinutes);
             builder.totalMissingMinutes(lateMinutes + earlyExitMinutes);
 
-            if (exitTime != null) {
-                // TODO: Adım 2 — mola aralığı kesişimi hesaplanacak
-                long breakMinutes = 0;
+            builder.workedMinutes(workedMinutes);
 
-                long workedTotal = ChronoUnit.MINUTES.between(entryTime, exitTime);
-                long workedMinutes = Math.max(0, workedTotal - breakMinutes);
-                builder.workedMinutes((int) workedMinutes);
-
-                long netShiftMinutes = Math.max(0, ChronoUnit.MINUTES.between(shiftStart, shiftEnd) - breakMinutes);
-                long overtime = Math.max(0, workedMinutes - netShiftMinutes);
-                builder.overtimeMinutes((int) overtime);
-            } else {
-                builder.workedMinutes(0).overtimeMinutes(0);
-            }
+            long breakDuration = breakWindowStart != null
+                    ? ChronoUnit.MINUTES.between(breakWindowStart, breakWindowEnd)
+                    : 0;
+            long netShiftMinutes = Math.max(0, ChronoUnit.MINUTES.between(shiftStart, shiftEnd) - breakDuration);
+            builder.overtimeMinutes((int) Math.max(0, workedMinutes - netShiftMinutes));
         } else {
             return buildWithZeros(builder);
         }
 
         return builder.build();
+    }
+
+    /** Calisma araligi ile mola penceresinin ortusen dakikasi; pencere tanimsizsa 0. */
+    private long overlapMinutes(LocalDateTime start, LocalDateTime end,
+                                LocalDateTime windowStart, LocalDateTime windowEnd) {
+        if (windowStart == null || windowEnd == null) {
+            return 0;
+        }
+        LocalDateTime overlapStart = start.isAfter(windowStart) ? start : windowStart;
+        LocalDateTime overlapEnd = end.isBefore(windowEnd) ? end : windowEnd;
+        if (!overlapStart.isBefore(overlapEnd)) {
+            return 0;
+        }
+        return ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
     }
 
     private DailyAttendanceDto buildWithZeros(DailyAttendanceDto.DailyAttendanceDtoBuilder builder) {
