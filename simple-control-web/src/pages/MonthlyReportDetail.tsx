@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ChevronRight, ChevronDown } from 'lucide-react';
 import FormInput from '../components/ui/form/FormInput';
 import Badge from '../components/ui/badge/Badge';
 import styles from './DailyReport.module.css'; // Reuse CSS
 import tableStyles from '../components/ui/table/Table.module.css';
 import { useToast } from '../components/ui/toast/ToastContext';
+
+interface WorkInterval {
+  entryTime: string;
+  exitTime: string | null;
+  minutes: number;
+}
 
 interface DailyReportRow {
   employeeId: number;
@@ -29,6 +35,7 @@ interface DailyReportRow {
   scanCount: number;
   suspiciousScanCount: number;
   nightShift: boolean;
+  intervals: WorkInterval[] | null;
 }
 
 const getStatusBadge = (status: string) => {
@@ -87,6 +94,8 @@ export default function MonthlyReportDetail() {
   const [data, setData] = useState<DailyReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Ayni anda tek gun acik kalir
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -182,17 +191,37 @@ export default function MonthlyReportDetail() {
               {data.map((row) => {
                 const isWeekendOrHoliday = row.dayOfWeek === 6 || row.dayOfWeek === 7 || row.status === 'TATIL';
                 const isFuture = row.status === 'GELECEK';
-                
+
+                // Tek aralik zaten Giris/Cikis sutunlarinda gorunuyor, sadece coklu aralikta acilir
+                const intervals = row.intervals ?? [];
+                const isExpandable = intervals.length > 1;
+                const isExpanded = isExpandable && expandedDate === row.date;
+                const toggleExpand = () => setExpandedDate(isExpanded ? null : row.date);
+
                 return (
-                  <tr 
-                    key={row.date} 
-                    className={tableStyles.tr}
+                  <Fragment key={row.date}>
+                  <tr
+                    className={`${tableStyles.tr} ${isExpandable ? styles.expandableRow : ''}`}
                     style={{
                       ...(isWeekendOrHoliday ? { backgroundColor: 'var(--color-surface-sunken)' } : {}),
                       ...(isFuture ? { opacity: 0.5 } : {})
                     }}
+                    onClick={isExpandable ? toggleExpand : undefined}
+                    tabIndex={isExpandable ? 0 : undefined}
+                    role={isExpandable ? 'button' : undefined}
+                    aria-expanded={isExpandable ? isExpanded : undefined}
+                    onKeyDown={isExpandable ? (e) => { if (e.key === 'Enter') toggleExpand(); } : undefined}
                   >
-                    <td className={tableStyles.tdPrimary}>{row.date}</td>
+                    <td className={tableStyles.tdPrimary}>
+                      <span className={styles.dateCell}>
+                        {isExpandable && (
+                          <span className={styles.expandToggle}>
+                            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          </span>
+                        )}
+                        {row.date}
+                      </span>
+                    </td>
                     <td className={tableStyles.td}>{getDayName(row.date)}</td>
                     <td className={tableStyles.td} style={{ textAlign: 'right' }}>{row.shiftName || '—'}</td>
                     
@@ -230,6 +259,30 @@ export default function MonthlyReportDetail() {
                     
                     <td className={tableStyles.td}>{getStatusBadge(row.status)}</td>
                   </tr>
+
+                  {isExpanded && (
+                    <tr className={styles.intervalsRow}>
+                      <td colSpan={9}>
+                        <div className={styles.intervalsTitle}>Çalışma Aralıkları</div>
+                        <div className={styles.intervalsList}>
+                          {intervals.map((interval, index) => (
+                            <div key={index} className={styles.intervalItem}>
+                              <span className={styles.intervalIndex}>{index + 1}.</span>
+                              <span className={styles.intervalTimes}>
+                                {formatTime(interval.entryTime)} → {interval.exitTime ? formatTime(interval.exitTime) : '—'}
+                              </span>
+                              {interval.exitTime ? (
+                                <span className={styles.intervalDuration}>{formatDuration(interval.minutes)}</span>
+                              ) : (
+                                <span className={styles.intervalNote}>Çıkış kaydı yok</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>

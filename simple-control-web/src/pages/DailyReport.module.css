@@ -162,6 +162,72 @@
 .badgeError { color: var(--color-error); background-color: var(--color-error-bg); }
 .badgeInfo { color: var(--color-info); background-color: var(--color-info-bg); }
 
+/* --- Aylik puantaj detayi: gun ici calisma araliklari --- */
+
+.expandableRow {
+  cursor: pointer;
+}
+
+.dateCell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.expandToggle {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+}
+
+.intervalsRow > td {
+  background: var(--color-surface-sunken);
+  padding: var(--space-md) var(--space-xl);
+}
+
+.intervalsTitle {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.intervalsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.intervalItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--font-size-body);
+}
+
+.intervalIndex {
+  width: 16px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-body-sm);
+}
+
+.intervalTimes {
+  font-family: var(--font-family-mono);
+  color: var(--color-text-primary);
+  min-width: 120px;
+}
+
+.intervalDuration {
+  color: var(--color-text-secondary);
+}
+
+.intervalNote {
+  color: var(--color-warning);
+  font-size: var(--font-size-body-sm);
+}
+
 .toggleGroup {
   display: flex;
   background: var(--color-surface-sunken);
