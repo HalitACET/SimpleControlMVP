@@ -15,10 +15,11 @@ public class DailyReportResponse extends DailyAttendanceDto {
 
     @Builder(builderMethodName = "reportBuilder")
     public DailyReportResponse(DailyAttendanceDto dto, Long employeeId, String employeeName, String cardNo, String workGroupName, String departmentName) {
-        super(dto.getDate(), dto.getDayOfWeek(), dto.getStatus(), dto.getShiftName(), dto.getShiftStartTime(), 
-              dto.getShiftEndTime(), dto.getEntryTime(), dto.getExitTime(), dto.getWorkedMinutes(), 
-              dto.getLateMinutes(), dto.getEarlyExitMinutes(), dto.getTotalMissingMinutes(), dto.getOvertimeMinutes(), 
-              dto.getScanCount(), dto.getSuspiciousScanCount(), dto.getExcludedScanCount(), dto.isNightShift());
+        super(dto.getDate(), dto.getDayOfWeek(), dto.getStatus(), dto.getShiftName(), dto.getShiftStartTime(),
+              dto.getShiftEndTime(), dto.getEntryTime(), dto.getExitTime(), dto.getWorkedMinutes(),
+              dto.getLateMinutes(), dto.getEarlyExitMinutes(), dto.getTotalMissingMinutes(), dto.getOvertimeMinutes(),
+              dto.getScanCount(), dto.getSuspiciousScanCount(), dto.getExcludedScanCount(), dto.isNightShift(),
+              dto.getIntervals());
         this.employeeId = employeeId;
         this.employeeName = employeeName;
         this.cardNo = cardNo;

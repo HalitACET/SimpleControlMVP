@@ -33,18 +33,4 @@ public class DailyAttendanceDto {
 
     /** Gun icindeki calisma araliklari; eslesmemis son okutma da listede yer alir. */
     private List<WorkIntervalDto> intervals;
-
-    /**
-     * Intervals oncesi 17 alanli kurucu — DailyReportResponse'un super() cagrisi bunu kullaniyor.
-     * DailyReportResponse intervals'i da tasiyacak sekilde guncellenince silinebilir.
-     */
-    public DailyAttendanceDto(LocalDate date, int dayOfWeek, DailyAttendanceStatus status, String shiftName,
-                              LocalTime shiftStartTime, LocalTime shiftEndTime, LocalDateTime entryTime,
-                              LocalDateTime exitTime, Integer workedMinutes, Integer lateMinutes,
-                              Integer earlyExitMinutes, Integer totalMissingMinutes, Integer overtimeMinutes,
-                              int scanCount, int suspiciousScanCount, int excludedScanCount, boolean isNightShift) {
-        this(date, dayOfWeek, status, shiftName, shiftStartTime, shiftEndTime, entryTime, exitTime,
-                workedMinutes, lateMinutes, earlyExitMinutes, totalMissingMinutes, overtimeMinutes,
-                scanCount, suspiciousScanCount, excludedScanCount, isNightShift, null);
-    }
 }
