@@ -25,9 +25,10 @@ public class ShiftRequest {
     @NotNull(message = "Bitiş saati boş bırakılamaz")
     private LocalTime endTime;
 
-    @NotNull(message = "Mola süresi boş bırakılamaz")
-    @Min(value = 0, message = "Mola süresi negatif olamaz")
-    private Integer breakMinutes;
+    // Mola araligi opsiyonel — ikisi de bos birakilabilir
+    private LocalTime breakStart;
+
+    private LocalTime breakEnd;
 
     @NotNull(message = "Geç kalma toleransı boş bırakılamaz")
     @Min(value = 0, message = "Geç kalma toleransı negatif olamaz")

@@ -49,9 +49,9 @@ public class DevService {
         stats.put("deletedHolidays", em.createQuery("DELETE FROM Holiday h WHERE h.firmId = :firmId").setParameter("firmId", firmId).executeUpdate());
         
         // 2. Create Shifts
-        Shift gunduz = createShift(firmId, "Gündüz", "08:00", "17:00", 60, 10, 10);
-        Shift gece = createShift(firmId, "Gece", "22:00", "06:00", 30, 10, 10);
-        Shift yarim = createShift(firmId, "Yarım Gün", "08:00", "13:00", 0, 10, 10);
+        Shift gunduz = createShift(firmId, "Gündüz", "08:00", "17:00", "12:30", "13:30", 10, 10);
+        Shift gece = createShift(firmId, "Gece", "22:00", "06:00", "02:00", "02:30", 10, 10);
+        Shift yarim = createShift(firmId, "Yarım Gün", "08:00", "13:00", null, null, 10, 10);
 
         // 3. Create Departments
         Department uretim = createDept(firmId, "Üretim", "Üretim hattı personeli");
@@ -112,13 +112,15 @@ public class DevService {
         return stats;
     }
 
-    private Shift createShift(String firmId, String name, String start, String end, int breakMins, int lateTol, int earlyTol) {
+    private Shift createShift(String firmId, String name, String start, String end,
+                              String breakStart, String breakEnd, int lateTol, int earlyTol) {
         Shift s = new Shift();
         s.setFirmId(firmId);
         s.setName(name);
         s.setStartTime(LocalTime.parse(start));
         s.setEndTime(LocalTime.parse(end));
-        s.setBreakMinutes(breakMins);
+        s.setBreakStart(breakStart == null ? null : LocalTime.parse(breakStart));
+        s.setBreakEnd(breakEnd == null ? null : LocalTime.parse(breakEnd));
         s.setLateToleranceMinutes(lateTol);
         s.setEarlyExitToleranceMinutes(earlyTol);
         s.setActive(true);

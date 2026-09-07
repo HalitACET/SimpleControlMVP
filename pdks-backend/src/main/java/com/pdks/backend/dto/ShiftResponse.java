@@ -17,7 +17,8 @@ public class ShiftResponse {
     private String name;
     private LocalTime startTime;
     private LocalTime endTime;
-    private Integer breakMinutes;
+    private LocalTime breakStart;
+    private LocalTime breakEnd;
     private Integer lateToleranceMinutes;
     private Integer earlyExitToleranceMinutes;
     

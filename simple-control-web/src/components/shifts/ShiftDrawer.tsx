@@ -9,6 +9,14 @@ import styles from '../employees/EmployeeDrawer.module.css';
 import FormInput from '../ui/form/FormInput';
 import { type Shift } from '../../pages/Shifts';
 
+const parseTime = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + (m || 0);
+};
+
+type BreakInfo = { minutes: number; error?: string; field?: string };
+type ShiftInfo = { duration: number; crossesMidnight: boolean; error?: string };
+
 interface ShiftDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,7 +28,8 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
   const [name, setName] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [breakMinutes, setBreakMinutes] = useState('0');
+  const [breakStart, setBreakStart] = useState('');
+  const [breakEnd, setBreakEnd] = useState('');
   const [lateToleranceMinutes, setLateToleranceMinutes] = useState('0');
   const [earlyExitToleranceMinutes, setEarlyExitToleranceMinutes] = useState('0');
 
@@ -49,14 +58,16 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
         setName(shiftToEdit.name);
         setStartTime(shiftToEdit.startTime.substring(0, 5));
         setEndTime(shiftToEdit.endTime.substring(0, 5));
-        setBreakMinutes(String(shiftToEdit.breakMinutes));
+        setBreakStart(shiftToEdit.breakStart ? shiftToEdit.breakStart.substring(0, 5) : '');
+        setBreakEnd(shiftToEdit.breakEnd ? shiftToEdit.breakEnd.substring(0, 5) : '');
         setLateToleranceMinutes(String(shiftToEdit.lateToleranceMinutes));
         setEarlyExitToleranceMinutes(String(shiftToEdit.earlyExitToleranceMinutes));
       } else {
         setName('');
         setStartTime('08:00');
         setEndTime('17:00');
-        setBreakMinutes('60');
+        setBreakStart('');
+        setBreakEnd('');
         setLateToleranceMinutes('10');
         setEarlyExitToleranceMinutes('0');
       }
@@ -123,34 +134,41 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
     onClose();
   };
 
-  const getShiftInfo = () => {
+  // Mola araligi opsiyonel: ikisi de bossa mola dusulmez
+  const getBreakInfo = (): BreakInfo => {
+    if (!breakStart && !breakEnd) return { minutes: 0 };
+    if (!breakStart) return { minutes: 0, error: 'Mola başlangıç ve bitiş saati birlikte verilmelidir.', field: 'breakStart' };
+    if (!breakEnd) return { minutes: 0, error: 'Mola başlangıç ve bitiş saati birlikte verilmelidir.', field: 'breakEnd' };
+
+    const bStart = parseTime(breakStart);
+    const bEnd = parseTime(breakEnd);
+    if (bStart >= bEnd) {
+      return { minutes: 0, error: 'Mola bitiş saati başlangıçtan sonra olmalıdır.', field: 'breakEnd' };
+    }
+    return { minutes: bEnd - bStart };
+  };
+
+  const getShiftInfo = (): ShiftInfo | null => {
     if (!startTime || !endTime) return null;
-    
-    const parseTime = (t: string) => {
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + (m || 0);
-    };
-    
+
     const start = parseTime(startTime);
     let end = parseTime(endTime);
     let crossesMidnight = false;
-    
-    if (start === end) return { error: 'Başlangıç ve bitiş saati aynı olamaz.' };
-    
+
+    if (start === end) return { duration: 0, crossesMidnight: false, error: 'Başlangıç ve bitiş saati aynı olamaz.' };
+
     if (end < start) {
       crossesMidnight = true;
       end += 24 * 60;
     }
-    
-    const diff = end - start;
-    const breakMins = parseInt(breakMinutes) || 0;
-    
-    if (breakMins >= diff) {
-      return { error: 'Mola süresi vardiya süresinden uzun veya eşit olamaz.' };
+
+    const breakInfo = getBreakInfo();
+    if (breakInfo.error) {
+      return { duration: 0, crossesMidnight, error: breakInfo.error };
     }
-    
-    const duration = diff - breakMins;
-    
+
+    const duration = Math.max(0, end - start - breakInfo.minutes);
+
     return { duration, crossesMidnight };
   };
 
@@ -160,9 +178,9 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
     if (!startTime) errors.startTime = 'Başlangıç saati zorunludur';
     if (!endTime) errors.endTime = 'Bitiş saati zorunludur';
     
-    const bMins = parseInt(breakMinutes);
-    if (isNaN(bMins) || bMins < 0) errors.breakMinutes = 'Geçerli bir mola süresi girin';
-    
+    const breakInfo = getBreakInfo();
+    if (breakInfo.error && breakInfo.field) errors[breakInfo.field] = breakInfo.error;
+
     const lMins = parseInt(lateToleranceMinutes);
     if (isNaN(lMins) || lMins < 0) errors.lateToleranceMinutes = 'Geçerli bir tolerans girin';
 
@@ -170,9 +188,8 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
     if (isNaN(eMins) || eMins < 0) errors.earlyExitToleranceMinutes = 'Geçerli bir tolerans girin';
 
     const info = getShiftInfo();
-    if (info?.error) {
-      if (info.error.includes('saati aynı')) errors.endTime = info.error;
-      else errors.breakMinutes = info.error;
+    if (info?.error && info.error.includes('saati aynı')) {
+      errors.endTime = info.error;
     }
 
     setFieldErrors(errors);
@@ -198,7 +215,8 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
         name, 
         startTime: startTime + ':00', 
         endTime: endTime + ':00', 
-        breakMinutes: parseInt(breakMinutes), 
+        breakStart: breakStart ? breakStart + ':00' : null,
+        breakEnd: breakEnd ? breakEnd + ':00' : null,
         lateToleranceMinutes: parseInt(lateToleranceMinutes),
         earlyExitToleranceMinutes: parseInt(earlyExitToleranceMinutes)
       };
@@ -343,13 +361,23 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
         
         <div className={styles.row}>
           <FormInput
-            label="Mola (dk)"
-            type="number"
-            min="0"
-            value={breakMinutes}
-            onChange={handleChange(setBreakMinutes)}
-            error={fieldErrors.breakMinutes}
+            label="Mola Başlangıç"
+            type="time"
+            value={breakStart}
+            onChange={handleChange(setBreakStart)}
+            error={fieldErrors.breakStart}
+            hint="Boş bırakılırsa mola düşülmez."
           />
+          <FormInput
+            label="Mola Bitiş"
+            type="time"
+            value={breakEnd}
+            onChange={handleChange(setBreakEnd)}
+            error={fieldErrors.breakEnd}
+          />
+        </div>
+
+        <div className={styles.row}>
           <FormInput
             label="Geç Kalma Tol. (dk)"
             type="number"
@@ -359,24 +387,23 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
             error={fieldErrors.lateToleranceMinutes}
             hint="Sadece bu dakika aşılırsa geç sayılır."
           />
+          <FormInput
+            label="Erken Çıkış Tol. (dk)"
+            type="number"
+            min="0"
+            value={earlyExitToleranceMinutes}
+            onChange={handleChange(setEarlyExitToleranceMinutes)}
+            error={fieldErrors.earlyExitToleranceMinutes}
+            hint="Sadece bu dakika aşılırsa erken çıktı sayılır."
+          />
         </div>
-
-        <FormInput
-          label="Erken Çıkış Tol. (dk)"
-          type="number"
-          min="0"
-          value={earlyExitToleranceMinutes}
-          onChange={handleChange(setEarlyExitToleranceMinutes)}
-          error={fieldErrors.earlyExitToleranceMinutes}
-          hint="Sadece bu dakika aşılırsa erken çıktı sayılır."
-        />
 
         <div className={styles.infoBox}>
           {shiftInfo?.error ? (
             <span style={{ color: 'var(--color-error)' }}>{shiftInfo.error}</span>
           ) : shiftInfo ? (
             <>
-              <span style={{ fontWeight: 'var(--font-weight-medium)' }}>Süre:</span> {formatDuration(shiftInfo.duration as number)}
+              <span style={{ fontWeight: 'var(--font-weight-medium)' }}>Süre:</span> {formatDuration(shiftInfo.duration)}
               {shiftInfo.crossesMidnight && (
                 <span style={{ color: 'var(--color-info)', fontWeight: 'var(--font-weight-medium)' }}>
                   {' '}• Gece vardiyası (ertesi güne sarkıyor)
@@ -385,7 +412,7 @@ export default function ShiftDrawer({ isOpen, onClose, onSuccess, shiftToEdit }:
             </>
           ) : (
             <span style={{ color: 'var(--color-text-disabled)' }}>
-              Süre hesabı için geçerli saatler ve mola girin.
+              Süre hesabı için geçerli başlangıç ve bitiş saati girin.
             </span>
           )}
         </div>

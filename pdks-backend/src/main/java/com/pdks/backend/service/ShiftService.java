@@ -42,36 +42,48 @@ public class ShiftService {
         if (request.getStartTime().equals(request.getEndTime())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Başlangıç ve bitiş saati aynı olamaz.");
         }
-        
-        long shiftDuration = calculateDurationRaw(request);
-        if (request.getBreakMinutes() >= shiftDuration) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mola süresi vardiya süresinden uzun veya eşit olamaz.");
-        }
+
+        validateBreakWindow(request);
     }
 
-    private long calculateDurationRaw(ShiftRequest request) {
-        long duration = Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
-        if (duration <= 0) {
-            duration += 24 * 60;
+    private void validateBreakWindow(ShiftRequest request) {
+        if (request.getBreakStart() == null && request.getBreakEnd() == null) {
+            return;
         }
-        return duration;
+        if (request.getBreakStart() == null || request.getBreakEnd() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mola baslangic ve bitis saati birlikte verilmelidir.");
+        }
+        if (!request.getBreakStart().isBefore(request.getBreakEnd())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mola bitis saati baslangictan sonra olmalidir.");
+        }
+        // Molanin vardiya penceresi icinde olup olmadigi kontrol edilmiyor:
+        // gece vardiyasinda pencere gece yarisini gectigi icin ayri bir kontrol gerekiyor.
+    }
+
+    /** Mola araligi doluysa dakika farki, bos ise 0. */
+    private int breakMinutesOf(Shift shift) {
+        if (shift.getBreakStart() == null || shift.getBreakEnd() == null) {
+            return 0;
+        }
+        return (int) Duration.between(shift.getBreakStart(), shift.getBreakEnd()).toMinutes();
     }
 
     private ShiftResponse mapToResponse(Shift shift) {
         boolean crossesMidnight = !shift.getEndTime().isAfter(shift.getStartTime());
-        
+
         long durationRaw = Duration.between(shift.getStartTime(), shift.getEndTime()).toMinutes();
         if (durationRaw <= 0) {
             durationRaw += 24 * 60;
         }
-        int durationMinutes = Math.max(0, (int) durationRaw - shift.getBreakMinutes());
+        int durationMinutes = Math.max(0, (int) durationRaw - breakMinutesOf(shift));
 
         return ShiftResponse.builder()
                 .id(shift.getId())
                 .name(shift.getName())
                 .startTime(shift.getStartTime())
                 .endTime(shift.getEndTime())
-                .breakMinutes(shift.getBreakMinutes())
+                .breakStart(shift.getBreakStart())
+                .breakEnd(shift.getBreakEnd())
                 .lateToleranceMinutes(shift.getLateToleranceMinutes())
                 .earlyExitToleranceMinutes(shift.getEarlyExitToleranceMinutes())
                 .crossesMidnight(crossesMidnight)
@@ -107,7 +119,8 @@ public class ShiftService {
                 .name(request.getName().trim())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
-                .breakMinutes(request.getBreakMinutes())
+                .breakStart(request.getBreakStart())
+                .breakEnd(request.getBreakEnd())
                 .lateToleranceMinutes(request.getLateToleranceMinutes())
                 .earlyExitToleranceMinutes(request.getEarlyExitToleranceMinutes())
                 .active(true)
@@ -133,7 +146,8 @@ public class ShiftService {
         shift.setName(request.getName().trim());
         shift.setStartTime(request.getStartTime());
         shift.setEndTime(request.getEndTime());
-        shift.setBreakMinutes(request.getBreakMinutes());
+        shift.setBreakStart(request.getBreakStart());
+        shift.setBreakEnd(request.getBreakEnd());
         shift.setLateToleranceMinutes(request.getLateToleranceMinutes());
         shift.setEarlyExitToleranceMinutes(request.getEarlyExitToleranceMinutes());
 

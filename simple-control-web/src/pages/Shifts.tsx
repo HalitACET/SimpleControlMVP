@@ -12,7 +12,8 @@ export interface Shift {
   startTime: string; // e.g. "08:00:00"
   endTime: string;
   durationMinutes: number;
-  breakMinutes: number;
+  breakStart: string | null; // e.g. "12:30:00"
+  breakEnd: string | null;
   lateToleranceMinutes: number;
   earlyExitToleranceMinutes: number;
   crossesMidnight: boolean;
@@ -165,7 +166,9 @@ export default function Shifts() {
                     {formatDuration(shift.durationMinutes)}
                   </td>
                   <td className={styles.td}>
-                    {shift.breakMinutes} dk
+                    {shift.breakStart && shift.breakEnd
+                      ? `${formatTime(shift.breakStart)} – ${formatTime(shift.breakEnd)}`
+                      : '—'}
                   </td>
                   <td className={styles.td}>
                     {shift.lateToleranceMinutes} dk / {shift.earlyExitToleranceMinutes} dk

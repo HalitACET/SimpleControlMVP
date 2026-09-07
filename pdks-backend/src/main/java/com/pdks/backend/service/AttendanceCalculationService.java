@@ -190,11 +190,14 @@ public class AttendanceCalculationService {
             builder.totalMissingMinutes(lateMinutes + earlyExitMinutes);
 
             if (exitTime != null) {
+                // TODO: Adım 2 — mola aralığı kesişimi hesaplanacak
+                long breakMinutes = 0;
+
                 long workedTotal = ChronoUnit.MINUTES.between(entryTime, exitTime);
-                long workedMinutes = Math.max(0, workedTotal - shift.getBreakMinutes());
+                long workedMinutes = Math.max(0, workedTotal - breakMinutes);
                 builder.workedMinutes((int) workedMinutes);
 
-                long netShiftMinutes = Math.max(0, ChronoUnit.MINUTES.between(shiftStart, shiftEnd) - shift.getBreakMinutes());
+                long netShiftMinutes = Math.max(0, ChronoUnit.MINUTES.between(shiftStart, shiftEnd) - breakMinutes);
                 long overtime = Math.max(0, workedMinutes - netShiftMinutes);
                 builder.overtimeMinutes((int) overtime);
             } else {

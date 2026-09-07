@@ -30,9 +30,12 @@ public class Shift {
     @Column(nullable = false)
     private LocalTime endTime;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer breakMinutes = 60;
+    // Mola araligi opsiyoneldir; ikisi de null ise molasiz vardiya
+    @Column
+    private LocalTime breakStart;
+
+    @Column
+    private LocalTime breakEnd;
 
     @Column(nullable = false)
     @Builder.Default
