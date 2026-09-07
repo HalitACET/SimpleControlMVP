@@ -203,7 +203,8 @@ export default function HomeScreen({navigation}: Props) {
       );
     }
 
-    const isInside = nextAction?.suggestedType === 'CIKIS';
+    // Giris var, cikis yoksa iceride; cikis yapildiysa tekrar disarida
+    const isInside = !!nextAction?.entryTime && !nextAction?.exitTime;
     const statusText = isInside ? 'İÇERİDESİNİZ' : 'DIŞARIDASINIZ';
     const last = nextAction?.lastScan;
     

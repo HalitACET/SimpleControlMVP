@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { ChevronLeft, ChevronRight, AlertTriangle, Users, Building2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle, Users, Building2, Download } from 'lucide-react';
 import FormInput from '../components/ui/form/FormInput';
 import FormSelect from '../components/ui/form/FormSelect';
 import styles from './DailyReport.module.css';
 import tableStyles from '../components/ui/table/Table.module.css';
 import { useToast } from '../components/ui/toast/ToastContext';
+import {
+  exportToExcel,
+  cellOrBlank,
+  formatDurationCell,
+  formatGeneratedAt,
+  formatMonthLabel,
+  getFirmCode,
+  type ExcelCell
+} from '../utils/excelExport';
 
 interface MonthlyReportResponse {
   employeeId: number;
@@ -148,6 +157,105 @@ export default function MonthlyReport() {
   };
 
   const summary = getSummary();
+  const hasData = viewType === 'employee' ? data.length > 0 : deptData.length > 0;
+
+  const handleExport = () => {
+    const [year, month] = monthStr.split('-');
+    const periodLabel = formatMonthLabel(Number(year), Number(month));
+    const selectedDept = departments.find(d => d.value === departmentId);
+
+    const meta = [
+      `Firma: ${getFirmCode()}`,
+      `Dönem: ${periodLabel}`
+    ];
+    if (viewType === 'employee' && selectedDept) {
+      meta.push(`Departman: ${selectedDept.label}`);
+    }
+    meta.push(`Oluşturma Tarihi: ${formatGeneratedAt()}`);
+
+    // Ekranda hangi gorunum aciksa onun sutunlari disa aktarilir
+    const columns = viewType === 'employee'
+      ? [
+          { header: 'Personel', width: 24 },
+          { header: 'Kart No', width: 12 },
+          { header: 'Departman', width: 18 },
+          { header: 'Çalışma Grubu', width: 18 },
+          { header: 'Beklenen Gün', width: 14 },
+          { header: 'Gelen Gün', width: 12 },
+          { header: 'Devamsız', width: 11 },
+          { header: 'Eksik Çıkış', width: 12 },
+          { header: 'Çalışılan Süre', width: 15 },
+          { header: 'Çalışılan (dk)', width: 14 },
+          { header: 'Geç Kalma', width: 13 },
+          { header: 'Geç (dk)', width: 10 },
+          { header: 'Erken Çıkış', width: 13 },
+          { header: 'Erken (dk)', width: 12 },
+          { header: 'Fazla Mesai', width: 13 },
+          { header: 'Fazla (dk)', width: 12 }
+        ]
+      : [
+          { header: 'Departman', width: 24 },
+          { header: 'Personel Sayısı', width: 16 },
+          { header: 'Toplam Çalışma', width: 16 },
+          { header: 'Çalışma (dk)', width: 14 },
+          { header: 'Toplam Geç', width: 13 },
+          { header: 'Geç (dk)', width: 10 },
+          { header: 'Toplam Erken Çıkış', width: 18 },
+          { header: 'Erken (dk)', width: 12 },
+          { header: 'Toplam Fazla Mesai', width: 18 },
+          { header: 'Fazla (dk)', width: 12 },
+          { header: 'Devamsız Gün', width: 14 },
+          { header: 'Geç Kalınan Gün', width: 16 }
+        ];
+
+    const rows: ExcelCell[][] = viewType === 'employee'
+      ? data.map(row => [
+          row.employeeName,
+          cellOrBlank(row.cardNo),
+          cellOrBlank(row.departmentName),
+          cellOrBlank(row.workGroupName),
+          row.expectedWorkDays,
+          row.attendedDays,
+          row.absentDays,
+          row.missingExitDays,
+          formatDurationCell(row.totalWorkedMinutes),
+          row.totalWorkedMinutes,
+          formatDurationCell(row.totalLateMinutes),
+          row.totalLateMinutes,
+          formatDurationCell(row.totalEarlyExitMinutes),
+          row.totalEarlyExitMinutes,
+          formatDurationCell(row.totalOvertimeMinutes),
+          row.totalOvertimeMinutes
+        ])
+      : deptData.map(row => [
+          row.departmentName,
+          row.employeeCount,
+          formatDurationCell(row.totalWorkedMinutes),
+          row.totalWorkedMinutes,
+          formatDurationCell(row.totalLateMinutes),
+          row.totalLateMinutes,
+          formatDurationCell(row.totalEarlyExitMinutes),
+          row.totalEarlyExitMinutes,
+          formatDurationCell(row.totalOvertimeMinutes),
+          row.totalOvertimeMinutes,
+          row.totalAbsentDays,
+          row.totalLateDayCount
+        ]);
+
+    try {
+      exportToExcel({
+        fileName: `aylik-puantaj-${monthStr}.xlsx`,
+        sheetName: periodLabel,
+        title: 'AYLIK PUANTAJ RAPORU',
+        meta,
+        columns,
+        rows
+      });
+      showToast('Excel dosyası indirildi', 'success');
+    } catch {
+      showToast('Excel dosyası oluşturulamadı', 'error');
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -181,20 +289,30 @@ export default function MonthlyReport() {
           )}
         </div>
 
-        <div className={styles.toggleGroup}>
-          <button 
-            className={`${styles.toggleBtn} ${viewType === 'employee' ? styles.toggleBtnActive : ''}`}
-            onClick={() => setViewType('employee')}
+        <div className={styles.filterActions}>
+          <div className={styles.toggleGroup}>
+            <button
+              className={`${styles.toggleBtn} ${viewType === 'employee' ? styles.toggleBtnActive : ''}`}
+              onClick={() => setViewType('employee')}
+            >
+              <Users size={16} />
+              Personel
+            </button>
+            <button
+              className={`${styles.toggleBtn} ${viewType === 'department' ? styles.toggleBtnActive : ''}`}
+              onClick={() => setViewType('department')}
+            >
+              <Building2 size={16} />
+              Departman
+            </button>
+          </div>
+
+          <button
+            className={styles.btnOutline}
+            onClick={handleExport}
+            disabled={!hasData || loading}
           >
-            <Users size={16} />
-            Personel
-          </button>
-          <button 
-            className={`${styles.toggleBtn} ${viewType === 'department' ? styles.toggleBtnActive : ''}`}
-            onClick={() => setViewType('department')}
-          >
-            <Building2 size={16} />
-            Departman
+            <Download size={16} /> Excel'e Aktar
           </button>
         </div>
       </div>

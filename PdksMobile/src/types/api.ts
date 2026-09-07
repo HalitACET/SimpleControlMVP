@@ -29,6 +29,8 @@ export interface NextActionResponse {
   lastScan: { scannedAt: string; method: string; locationName: string | null } | null;
   todayShift: { name: string; startTime: string; endTime: string; crossesMidnight: boolean } | null;
   holiday: boolean;
+  entryTime: string | null;
+  exitTime: string | null;
 }
 
 export interface ScanHistoryItem {

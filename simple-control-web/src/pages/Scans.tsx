@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { handleApiError } from '../utils/errorHandler';
-import { Plus } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 import FormInput from '../components/ui/form/FormInput';
 import FormSelect from '../components/ui/form/FormSelect';
 import Badge from '../components/ui/badge/Badge';
@@ -11,6 +11,15 @@ import dailyStyles from './DailyReport.module.css'; // For common header/filter 
 import { useToast } from '../components/ui/toast/ToastContext';
 import { useConfirm } from '../components/ui/confirm/ConfirmDialogContext';
 import ExcludeScanModal from '../components/scans/ExcludeScanModal';
+import {
+  exportToExcel,
+  cellOrBlank,
+  formatDateCell,
+  formatTimeCell,
+  formatGeneratedAt,
+  getFirmCode,
+  type ExcelCell
+} from '../utils/excelExport';
 
 interface RawScanRow {
   id: number;
@@ -151,6 +160,79 @@ export default function Scans() {
     }
   };
 
+  const getMethodLabel = (method: string) => {
+    switch (method) {
+      case 'QR': return 'QR';
+      case 'GPS': return 'GPS';
+      case 'MANUAL': return 'Manuel Kayıt';
+      default: return method;
+    }
+  };
+
+  const getScanStatusText = (row: RawScanRow): ExcelCell => {
+    const parts: string[] = [];
+    if (row.excluded) parts.push('İptal Edildi');
+    if (row.suspicious) parts.push(getReasonTranslation(row.suspiciousReason));
+    return parts.length > 0 ? parts.join(' · ') : undefined;
+  };
+
+  // Kart no listede yok; personel filtresi secenekleri "Ad Soyad (KartNo)" biciminde geldigi icin oradan okunur
+  const getCardNo = (employeeId: number): ExcelCell => {
+    const option = employees.find(e => e.value === employeeId.toString());
+    const match = option?.label.match(/\(([^)]+)\)\s*$/);
+    return match ? match[1] : undefined;
+  };
+
+  const handleExport = () => {
+    const selectedDept = departments.find(d => d.value === departmentId);
+    const selectedEmp = employees.find(e => e.value === employeeId);
+
+    const meta = [
+      `Firma: ${getFirmCode()}`,
+      `Tarih Aralığı: ${formatDateCell(startDate)} - ${formatDateCell(endDate)}`
+    ];
+    if (selectedDept) meta.push(`Departman: ${selectedDept.label}`);
+    if (selectedEmp && employeeId) meta.push(`Personel: ${selectedEmp.label}`);
+    if (suspiciousOnly) meta.push('Filtre: Sadece şüpheli kayıtlar');
+    meta.push(`Oluşturma Tarihi: ${formatGeneratedAt()}`);
+
+    const rows: ExcelCell[][] = data.map(row => [
+      formatDateCell(row.scannedAt),
+      formatTimeCell(row.scannedAt),
+      row.employeeName,
+      getCardNo(row.employeeId),
+      getMethodLabel(row.method),
+      cellOrBlank(row.locationName),
+      getScanStatusText(row),
+      cellOrBlank(row.excludedReason),
+      cellOrBlank(row.manualNote)
+    ]);
+
+    try {
+      exportToExcel({
+        fileName: `hareket-kayitlari-${startDate}_${endDate}.xlsx`,
+        sheetName: 'Hareket Kayıtları',
+        title: 'HAREKET KAYITLARI',
+        meta,
+        columns: [
+          { header: 'Tarih', width: 12 },
+          { header: 'Saat', width: 8 },
+          { header: 'Personel', width: 24 },
+          { header: 'Kart No', width: 12 },
+          { header: 'Yöntem', width: 14 },
+          { header: 'Lokasyon', width: 20 },
+          { header: 'Durum', width: 22 },
+          { header: 'İptal Sebebi', width: 24 },
+          { header: 'Not', width: 30 }
+        ],
+        rows
+      });
+      showToast('Excel dosyası indirildi', 'success');
+    } catch {
+      showToast('Excel dosyası oluşturulamadı', 'error');
+    }
+  };
+
   return (
     <div className={dailyStyles.container}>
       <div className={dailyStyles.filterBar} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
@@ -196,12 +278,22 @@ export default function Scans() {
           </div>
         </div>
         
-        <button 
-          className={dailyStyles.btnNew} 
-          onClick={() => setIsDrawerOpen(true)}
-        >
-          <Plus size={18} /> Manuel Kayıt Ekle
-        </button>
+        <div className={dailyStyles.filterActions}>
+          <button
+            className={dailyStyles.btnOutline}
+            onClick={handleExport}
+            disabled={data.length === 0 || loading}
+          >
+            <Download size={16} /> Excel'e Aktar
+          </button>
+
+          <button
+            className={dailyStyles.btnNew}
+            onClick={() => setIsDrawerOpen(true)}
+          >
+            <Plus size={18} /> Manuel Kayıt Ekle
+          </button>
+        </div>
       </div>
 
       <div className={tableStyles.card}>

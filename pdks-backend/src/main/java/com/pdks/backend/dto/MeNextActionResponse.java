@@ -13,6 +13,10 @@ public class MeNextActionResponse {
     private TodayShiftInfo todayShift;
     private boolean holiday;
 
+    /** Bugunun ilk girisi ve son cikisi; okutma yoksa ikisi de null. */
+    private LocalDateTime entryTime;
+    private LocalDateTime exitTime;
+
     @Data
     @Builder
     public static class LastScanInfo {

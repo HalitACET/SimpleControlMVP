@@ -86,6 +86,22 @@
   color: var(--color-text-primary);
 }
 
+.btnOutline:disabled,
+.btnOutline:disabled:hover {
+  background: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+/* Filtre cubugunun sagindaki eylem butonlari */
+.filterActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-left: auto;
+}
+
 .summaryBar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

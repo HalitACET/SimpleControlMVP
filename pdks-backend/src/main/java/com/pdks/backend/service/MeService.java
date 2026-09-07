@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -34,6 +35,20 @@ public class MeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Kullanici bulunamadi"));
     }
 
+    /** Rapordaki calisma araliklari; alan hic gelmezse bos liste. */
+    private List<WorkIntervalDto> intervalsOf(DailyReportResponse report) {
+        return report.getIntervals() != null ? report.getIntervals() : List.of();
+    }
+
+    /** Son aralik acik ise (cikis okutmasi yok) onu dondurur, aksi halde null. */
+    private WorkIntervalDto openInterval(List<WorkIntervalDto> intervals) {
+        if (intervals.isEmpty()) {
+            return null;
+        }
+        WorkIntervalDto last = intervals.get(intervals.size() - 1);
+        return last.getExitTime() == null ? last : null;
+    }
+
     public MeNextActionResponse getNextAction(String authHeader) {
         User user = getUserFromToken(authHeader);
         if (user.getEmployee() == null) {
@@ -43,14 +58,19 @@ public class MeService {
         LocalDate today = LocalDate.now();
         List<DailyReportResponse> dailyReports = adminReportService.getDailyReport(authHeader, today, user.getEmployee().getId(), null);
         
-        String suggestedType = "GIRIS";
         MeNextActionResponse.TodayShiftInfo todayShift = null;
         boolean holiday = false;
+        LocalDateTime entryTime = null;
+        LocalDateTime exitTime = null;
+        List<WorkIntervalDto> todayIntervals = List.of();
 
         if (dailyReports != null && !dailyReports.isEmpty()) {
             DailyReportResponse report = dailyReports.get(0);
-            suggestedType = report.getEntryTime() == null ? "GIRIS" : "CIKIS";
-            
+            entryTime = report.getEntryTime();
+            exitTime = report.getExitTime();
+            todayIntervals = intervalsOf(report);
+
+            // todayShift ve holiday her zaman bugunun raporundan gelir
             if (report.getShiftName() != null) {
                 todayShift = MeNextActionResponse.TodayShiftInfo.builder()
                         .name(report.getShiftName())
@@ -61,6 +81,29 @@ public class MeService {
             }
             holiday = (report.getStatus() == DailyAttendanceStatus.TATIL);
         }
+
+        // Iceride olmak = son calisma araligi acik. Gun icinde cikip tekrar girildiginde
+        // raporun exitTime'i dolu kalir, o yuzden ona bakilamaz.
+        WorkIntervalDto openInterval = openInterval(todayIntervals);
+
+        if (openInterval == null && todayIntervals.isEmpty()) {
+            // Gece vardiyasi: gece yarisi gecince bugunun raporu bos kalir ama personel hala iceride olabilir.
+            // Ikinci sorgu sadece bugun hic okutma yokken yapilir.
+            List<DailyReportResponse> yesterdayReports = adminReportService.getDailyReport(
+                    authHeader, today.minusDays(1), user.getEmployee().getId(), null);
+
+            if (yesterdayReports != null && !yesterdayReports.isEmpty()) {
+                openInterval = openInterval(intervalsOf(yesterdayReports.get(0)));
+            }
+        }
+
+        boolean inside = openInterval != null;
+        if (inside) {
+            entryTime = openInterval.getEntryTime();
+            exitTime = null;
+        }
+
+        String suggestedType = inside ? "CIKIS" : "GIRIS";
 
         RawScan lastScanRecord = rawScanRepository.findTopByEmployeeAndExcludedFalseOrderByScannedAtDesc(user.getEmployee()).orElse(null);
         MeNextActionResponse.LastScanInfo lastScan = null;
@@ -78,6 +121,8 @@ public class MeService {
                 .lastScan(lastScan)
                 .todayShift(todayShift)
                 .holiday(holiday)
+                .entryTime(entryTime)
+                .exitTime(exitTime)
                 .build();
     }
 

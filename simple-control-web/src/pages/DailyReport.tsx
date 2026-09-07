@@ -1,12 +1,24 @@
 import { useState, useEffect } from 'react';
 import Badge from '../components/ui/badge/Badge';
 import api from '../api/axios';
-import { ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle, Download } from 'lucide-react';
 import FormInput from '../components/ui/form/FormInput';
 import FormSelect from '../components/ui/form/FormSelect';
 import styles from './DailyReport.module.css';
 import tableStyles from '../components/ui/table/Table.module.css';
 import { useToast } from '../components/ui/toast/ToastContext';
+import {
+  exportToExcel,
+  cellOrBlank,
+  formatDurationCell,
+  formatStatusText,
+  formatTimeCell,
+  formatDateCell,
+  formatLongDateLabel,
+  formatGeneratedAt,
+  getFirmCode,
+  type ExcelCell
+} from '../utils/excelExport';
 
 interface DailyReportRow {
   employeeId: number;
@@ -166,6 +178,61 @@ export default function DailyReport() {
     missingExit: data.filter(d => d.status === 'EKSIK_CIKIS').length,
   };
 
+  const handleExport = () => {
+    const selectedDept = departments.find(d => d.value === departmentId);
+    const selectedEmp = employees.find(e => e.value === employeeId);
+
+    const meta = [
+      `Firma: ${getFirmCode()}`,
+      `Tarih: ${formatLongDateLabel(date)}`
+    ];
+    if (selectedDept) meta.push(`Departman: ${selectedDept.label}`);
+    if (selectedEmp && employeeId) meta.push(`Personel: ${selectedEmp.label}`);
+    meta.push(`Oluşturma Tarihi: ${formatGeneratedAt()}`);
+
+    const rows: ExcelCell[][] = data.map(row => [
+      row.employeeName,
+      cellOrBlank(row.cardNo),
+      cellOrBlank(row.departmentName),
+      cellOrBlank(row.workGroupName),
+      cellOrBlank(row.shiftName),
+      formatTimeCell(row.entryTime),
+      formatTimeCell(row.exitTime),
+      formatDurationCell(row.workedMinutes),
+      row.workedMinutes,
+      row.lateMinutes,
+      row.earlyExitMinutes,
+      formatStatusText(row.status)
+    ]);
+
+    try {
+      exportToExcel({
+        fileName: `gunluk-rapor-${date}.xlsx`,
+        sheetName: String(formatDateCell(date) ?? date),
+        title: 'GÜNLÜK DEVAM RAPORU',
+        meta,
+        columns: [
+          { header: 'Personel', width: 24 },
+          { header: 'Kart No', width: 12 },
+          { header: 'Departman', width: 18 },
+          { header: 'Çalışma Grubu', width: 18 },
+          { header: 'Vardiya', width: 16 },
+          { header: 'Giriş', width: 10 },
+          { header: 'Çıkış', width: 10 },
+          { header: 'Çalışılan Süre', width: 15 },
+          { header: 'Çalışılan (dk)', width: 14 },
+          { header: 'Geç (dk)', width: 10 },
+          { header: 'Erken Çıkış (dk)', width: 16 },
+          { header: 'Durum', width: 14 }
+        ],
+        rows
+      });
+      showToast('Excel dosyası indirildi', 'success');
+    } catch {
+      showToast('Excel dosyası oluşturulamadı', 'error');
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.filterBar}>
@@ -202,6 +269,16 @@ export default function DailyReport() {
               onChange={e => setEmployeeId(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className={styles.filterActions}>
+          <button
+            className={styles.btnOutline}
+            onClick={handleExport}
+            disabled={data.length === 0 || loading}
+          >
+            <Download size={16} /> Excel'e Aktar
+          </button>
         </div>
       </div>
 
