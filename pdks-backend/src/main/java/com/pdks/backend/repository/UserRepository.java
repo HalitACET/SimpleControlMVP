@@ -23,6 +23,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmployeeId(Long employeeId);
 
+    List<User> findByFirmIdAndEmployeeIdIn(String firmId, List<Long> employeeIds);
+
     List<User> findByFirmId(String firmId);
 
     @Query("SELECT u FROM User u LEFT JOIN u.employee e WHERE u.firmId = :firmId AND (" +

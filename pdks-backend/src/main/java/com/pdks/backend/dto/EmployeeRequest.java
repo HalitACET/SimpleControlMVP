@@ -31,4 +31,6 @@ public class EmployeeRequest {
 
     private Long workGroupId;
     private Long departmentId;
+    
+    private Boolean active;
 }

@@ -129,9 +129,8 @@ export default function MonthlyReportDetail() {
       <div className={styles.filterBar} style={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button 
-            className="btn btn-secondary" 
+            className={styles.btnOutline} 
             onClick={() => navigate('/reports/monthly')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
           >
             <ArrowLeft size={16} /> Listeye Dön
           </button>

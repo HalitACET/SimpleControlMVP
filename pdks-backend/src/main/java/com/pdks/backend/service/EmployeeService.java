@@ -32,11 +32,29 @@ public class EmployeeService {
 
     // ─── Listeleme ────────────────────────────────────────────────────────────
 
-    /** Firmanın aktif personellerini döner */
-    public List<EmployeeResponse> listEmployees(String authHeader) {
+    /** Firmanın personellerini döner (includeInactive true ise pasifleri de dahil eder) */
+    public List<EmployeeResponse> listEmployees(String authHeader, boolean includeInactive) {
         String firmId = extractFirmId(authHeader);
-        return employeeRepository.findByFirmIdAndActiveTrue(firmId).stream()
-                .map(this::toResponse)
+        
+        List<Employee> employees = includeInactive 
+                ? employeeRepository.findByFirmIdOrderByActiveDesc(firmId)
+                : employeeRepository.findByFirmIdAndActiveTrue(firmId);
+                
+        if (employees.isEmpty()) {
+            return List.of();
+        }
+        
+        List<Long> employeeIds = employees.stream()
+                .map(Employee::getId)
+                .collect(Collectors.toList());
+                
+        // N+1 problemini önlemek için kullanıcıları tek sorguda çekiyoruz
+        List<User> users = userRepository.findByFirmIdAndEmployeeIdIn(firmId, employeeIds);
+        java.util.Map<Long, User> userMap = users.stream()
+                .collect(Collectors.toMap(u -> u.getEmployee().getId(), u -> u));
+                
+        return employees.stream()
+                .map(e -> toResponse(e, userMap.get(e.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -49,7 +67,8 @@ public class EmployeeService {
     public EmployeeResponse getEmployee(String authHeader, Long id) {
         String firmId = extractFirmId(authHeader);
         Employee employee = findOwnedEmployee(firmId, id);
-        return toResponse(employee);
+        User user = userRepository.findByEmployeeId(employee.getId()).orElse(null);
+        return toResponse(employee, user);
     }
 
     // ─── Oluşturma ────────────────────────────────────────────────────────────
@@ -92,6 +111,7 @@ public class EmployeeService {
      * firstName, lastName, cardNo güncellenebilir.
      * firmId, active, createdAt değişmez.
      */
+    @org.springframework.transaction.annotation.Transactional
     public EmployeeResponse updateEmployee(String authHeader, Long id, EmployeeRequest request) {
         String firmId = extractFirmId(authHeader);
         Employee employee = findOwnedEmployee(firmId, id);
@@ -120,6 +140,14 @@ public class EmployeeService {
         employee.setCardNo(newCardNo);
         employee.setWorkGroup(workGroup);
         employee.setDepartment(department);
+
+        if (request.getActive() != null) {
+            employee.setActive(request.getActive());
+            userRepository.findByEmployeeId(employee.getId()).ifPresent(user -> {
+                user.setActive(request.getActive());
+                userRepository.save(user);
+            });
+        }
 
         return toResponse(employeeRepository.save(employee));
     }
@@ -165,12 +193,18 @@ public class EmployeeService {
     }
 
     private EmployeeResponse toResponse(Employee emp) {
+        User user = userRepository.findByEmployeeId(emp.getId()).orElse(null);
+        return toResponse(emp, user);
+    }
+
+    private EmployeeResponse toResponse(Employee emp, User user) {
         return EmployeeResponse.builder()
                 .id(emp.getId())
                 .firstName(emp.getFirstName())
                 .lastName(emp.getLastName())
                 .cardNo(emp.getCardNo())
                 .active(emp.isActive())
+                .hasAccount(user != null)
                 .workGroupId(emp.getWorkGroup() != null ? emp.getWorkGroup().getId() : null)
                 .workGroupName(emp.getWorkGroup() != null ? emp.getWorkGroup().getName() : null)
                 .departmentId(emp.getDepartment() != null ? emp.getDepartment().getId() : null)

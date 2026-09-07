@@ -197,9 +197,8 @@ export default function Scans() {
         </div>
         
         <button 
-          className="btn btn-primary" 
+          className={dailyStyles.btnNew} 
           onClick={() => setIsDrawerOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <Plus size={18} /> Manuel Kayıt Ekle
         </button>

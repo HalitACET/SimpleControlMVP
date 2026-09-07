@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import api from '../../api/axios';
 import { handleApiError } from '../../utils/errorHandler';
 import { useToast } from '../ui/toast/ToastContext';
@@ -17,6 +17,8 @@ interface Employee {
   firstName: string;
   lastName: string;
   cardNo: string;
+  active: boolean;
+  hasAccount: boolean;
   workGroupId?: number;
   departmentId?: number;
 }
@@ -25,6 +27,7 @@ interface ExistingAccount {
   id: number;
   username: string;
   active: boolean;
+  mustChangePassword: boolean;
 }
 
 interface UserResponse {
@@ -52,6 +55,9 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
   const [existingAccount, setExistingAccount] = useState<ExistingAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   
+  const [resetPasswordInput, setResetPasswordInput] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+
   const [fieldErrors, setFieldErrors] = useState<{ firstName?: string; lastName?: string; cardNo?: string; password?: string }>({});
   const [globalError, setGlobalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,7 +69,6 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
 
   const { showToast } = useToast();
   const { confirm } = useConfirm();
-  const navigate = useNavigate();
   const isEdit = !!employeeToEdit;
 
   useEffect(() => {
@@ -225,30 +230,64 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
     }
   };
 
-  const handleDelete = async () => {
+  const handleToggleActive = async () => {
     if (!employeeToEdit) return;
-    const confirmDelete = await confirm({
-      title: 'Personeli Sil',
-      message: 'Bu personeli silmek istediğinize emin misiniz?\n\nPersonel kaydı korunur ancak listede görünmez (Geri alınabilir).',
-      confirmText: 'Evet, Sil',
+    const isActivating = !employeeToEdit.active;
+    
+    const confirmToggle = await confirm({
+      title: isActivating ? 'Personeli Aktife Al' : 'Personeli Pasife Al',
+      message: isActivating 
+        ? `${employeeToEdit.firstName} ${employeeToEdit.lastName} aktife alınacak. Mobil uygulamaya tekrar giriş yapabilecek.`
+        : `${employeeToEdit.firstName} ${employeeToEdit.lastName} pasife alınacak. Mobil uygulamaya giriş yapamayacak ve raporlarda görünmeyecek.`,
+      confirmText: isActivating ? 'Evet, Aktife Al' : 'Evet, Pasife Al',
       cancelText: 'Vazgeç',
-      danger: true
+      danger: !isActivating
     });
-    if (!confirmDelete) return;
+    if (!confirmToggle) return;
 
     setIsSubmitting(true);
     setGlobalError('');
 
     try {
-      await api.delete(`/admin/employees/${employeeToEdit.id}`);
-      showToast('Personel başarıyla pasife alındı', 'success');
+      if (isActivating) {
+        const payload = { 
+          firstName: employeeToEdit.firstName, 
+          lastName: employeeToEdit.lastName, 
+          cardNo: employeeToEdit.cardNo, 
+          workGroupId: employeeToEdit.workGroupId || null,
+          departmentId: employeeToEdit.departmentId || null,
+          active: true
+        };
+        await api.put(`/admin/employees/${employeeToEdit.id}`, payload);
+        showToast('Personel başarıyla aktife alındı', 'success');
+      } else {
+        await api.delete(`/admin/employees/${employeeToEdit.id}`);
+        showToast('Personel başarıyla pasife alındı', 'success');
+      }
       setIsDirty(false);
       onSuccess();
     } catch (err: unknown) {
       setGlobalError(handleApiError(err));
+    } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleResetPassword = async () => {
+    if (!existingAccount || !resetPasswordInput.trim()) return;
+    setIsResetting(true);
+    try {
+      await api.put(`/admin/users-v2/${existingAccount.id}/password`, { newPassword: resetPasswordInput });
+      showToast('Şifre başarıyla güncellendi', 'success');
+      setResetPasswordInput('');
+      setExistingAccount({ ...existingAccount, mustChangePassword: true });
+    } catch (err: unknown) {
+      showToast(handleApiError(err), 'error');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
 
   // Düzenleme modunda hesap varsa: salt okunur göster + link
   // Düzenleme modunda hesap yoksa (veya yeni personel): hesap alanlarını göster
@@ -262,32 +301,36 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
     }
 
     if (isEdit && existingAccount) {
-      // Salt okunur hesap bilgisi
       return (
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--font-size-body)' }}>
+        <div className={styles.accountSection}>
+          <div className={styles.accountHeader}>
+            <span className={styles.accountUsername}>
               {existingAccount.username}
             </span>
-            <Badge variant={existingAccount.active ? 'success' : 'neutral'}>
-              {existingAccount.active ? 'Aktif' : 'Pasif'}
+            <Badge variant={existingAccount.mustChangePassword ? 'warning' : 'success'}>
+              {existingAccount.mustChangePassword ? 'Beklemede' : 'Güncellendi'}
             </Badge>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/users')}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              color: 'var(--color-accent)',
-              fontSize: 'var(--font-size-body-sm)',
-              cursor: 'pointer',
-              textDecoration: 'underline'
-            }}
-          >
-            Hesap ayarları →
-          </button>
+          
+          <div className={styles.accountActions}>
+            <div className={styles.passwordResetRow}>
+              <FormInput
+                label="Şifre Sıfırla"
+                type="password"
+                value={resetPasswordInput}
+                onChange={e => setResetPasswordInput(e.target.value)}
+                placeholder="Yeni şifre belirle"
+              />
+              <button
+                type="button"
+                className={styles.btnReset}
+                onClick={handleResetPassword}
+                disabled={!resetPasswordInput.trim() || isResetting}
+              >
+                {isResetting ? 'Sıfırlanıyor...' : 'Şifre Sıfırla'}
+              </button>
+            </div>
+          </div>
         </div>
       );
     }
@@ -316,14 +359,14 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
       title={isEdit ? 'Personeli Düzenle' : 'Yeni Personel'}
       subtitle={isEdit ? 'Personel bilgilerini güncelleyin' : 'Sisteme yeni bir personel ekleyin'}
       footerLeft={
-        isEdit && (
+        isEdit && employeeToEdit && (
           <button
             type="button"
-            className={styles.btnDelete}
-            onClick={handleDelete}
+            className={employeeToEdit.active ? styles.btnDelete : styles.btnActivate}
+            onClick={handleToggleActive}
             disabled={isSubmitting}
           >
-            Personeli Sil
+            {employeeToEdit.active ? 'Personeli Pasife Al' : 'Personeli Aktife Al'}
           </button>
         )
       }
@@ -407,22 +450,10 @@ export default function EmployeeDrawer({ isOpen, onClose, onSuccess, employeeToE
           options={[{ value: '', label: 'Atanmamış' }, ...departments.map(d => ({ value: String(d.id), label: d.name }))]}
         />
 
-        {/* Uygulama Erişimi bölümü */}
+        {/* Şifre İşlemleri Bölümü */}
         <div style={{
-          borderTop: '1px solid var(--color-border)',
-          marginTop: 'var(--space-xl)',
-          paddingTop: 'var(--space-xl)'
+          marginTop: 'var(--space-lg)'
         }}>
-          <div style={{
-            fontSize: 'var(--font-size-label)',
-            fontWeight: 'var(--font-weight-semibold)',
-            color: 'var(--color-text-secondary)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            marginBottom: 'var(--space-lg)'
-          }}>
-            Uygulama Erişimi
-          </div>
           {renderAccountSection()}
         </div>
       </form>

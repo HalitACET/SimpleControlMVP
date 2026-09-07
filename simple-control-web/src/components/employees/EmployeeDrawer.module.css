@@ -128,6 +128,21 @@
   cursor: not-allowed;
 }
 
+.btnActivate {
+  height: 36px;
+  padding: 0 var(--space-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  cursor: pointer;
+}
+
+.btnActivate:hover {
+  background: var(--color-surface-sunken);
+}
+
 .btnDelete {
   height: 36px;
   padding: 0 var(--space-lg);
@@ -144,13 +159,77 @@
 }
 
 .globalError {
-  margin-bottom: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
-  background-color: var(--color-error-bg);
+  background: var(--color-error-bg);
   color: var(--color-error);
+  padding: var(--space-md);
   border-radius: var(--radius-sm);
+  margin-bottom: var(--space-lg);
+  font-size: var(--font-size-body);
+}
+
+.loadingText {
+  color: var(--color-text-secondary);
   font-size: var(--font-size-body-sm);
 }
+
+.accountSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.accountHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.accountUsername {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-body);
+}
+
+.accountActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.passwordResetRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-sm);
+}
+
+.passwordResetRow > div {
+  flex: 1;
+}
+
+.btnReset {
+  height: 36px;
+  padding: 0 var(--space-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnReset:hover:not(:disabled) {
+  background: var(--color-surface-sunken);
+}
+
+.btnReset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
 
 @keyframes slideIn {
   from {

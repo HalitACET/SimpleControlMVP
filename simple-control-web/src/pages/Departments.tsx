@@ -52,12 +52,12 @@ export default function Departments() {
   };
 
   return (
-    <div style={{ padding: 'var(--space-xl)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xl)' }}>
-        <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-body)' }}>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <div className={styles.subtitle}>
           Çalışanları sınıflandırmak için departmanlar oluşturun.
         </div>
-        <button className="btn-primary" onClick={handleOpenNew}>Yeni Departman</button>
+        <button className={styles.btnNew} onClick={handleOpenNew}>Yeni Departman</button>
       </div>
 
       {error ? (

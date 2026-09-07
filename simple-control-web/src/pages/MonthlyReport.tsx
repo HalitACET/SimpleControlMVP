@@ -181,21 +181,19 @@ export default function MonthlyReport() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className={styles.toggleGroup}>
           <button 
-            className={`btn ${viewType === 'employee' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`${styles.toggleBtn} ${viewType === 'employee' ? styles.toggleBtnActive : ''}`}
             onClick={() => setViewType('employee')}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Users size={18} />
+            <Users size={16} />
             Personel
           </button>
           <button 
-            className={`btn ${viewType === 'department' ? 'btn-primary' : 'btn-secondary'}`}
+            className={`${styles.toggleBtn} ${viewType === 'department' ? styles.toggleBtnActive : ''}`}
             onClick={() => setViewType('department')}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Building2 size={18} />
+            <Building2 size={16} />
             Departman
           </button>
         </div>

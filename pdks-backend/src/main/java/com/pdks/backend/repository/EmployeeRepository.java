@@ -14,6 +14,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     /** Firmanın aktif personellerini listeler */
     List<Employee> findByFirmIdAndActiveTrue(String firmId);
 
+    /** Firmanın tüm personellerini (aktifler önce) listeler */
+    List<Employee> findByFirmIdOrderByActiveDesc(String firmId);
+
     @org.springframework.data.jpa.repository.Query("SELECT DISTINCT e FROM Employee e LEFT JOIN FETCH e.workGroup wg LEFT JOIN FETCH wg.days wgd LEFT JOIN FETCH wgd.shift s LEFT JOIN FETCH e.department d WHERE e.firmId = :firmId AND e.active = true")
     List<Employee> findByFirmIdAndActiveTrueWithWorkGroup(@org.springframework.data.repository.query.Param("firmId") String firmId);
 

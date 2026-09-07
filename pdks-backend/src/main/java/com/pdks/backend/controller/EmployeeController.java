@@ -26,8 +26,9 @@ public class EmployeeController {
     /** Firmanın aktif personellerini listeler */
     @GetMapping
     public ResponseEntity<List<EmployeeResponse>> list(
-            @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(employeeService.listEmployees(authHeader));
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return ResponseEntity.ok(employeeService.listEmployees(authHeader, includeInactive));
     }
 
     /** Tek personeli id ile getirir */

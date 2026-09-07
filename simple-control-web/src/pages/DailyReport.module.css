@@ -43,6 +43,49 @@
   border-color: var(--text-secondary);
 }
 
+.btnNew {
+  height: 36px;
+  padding: 0 var(--space-lg);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.btnNew:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.btnOutline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-primary-variant);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnOutline:hover {
+  background: var(--color-surface-sunken);
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
 .summaryBar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -118,3 +161,37 @@
 .badgeWarning { color: var(--color-warning); background-color: var(--color-warning-bg); }
 .badgeError { color: var(--color-error); background-color: var(--color-error-bg); }
 .badgeInfo { color: var(--color-info); background-color: var(--color-info-bg); }
+
+.toggleGroup {
+  display: flex;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  border-radius: calc(var(--radius-sm) - 2px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggleBtn:hover {
+  color: var(--color-text-primary);
+}
+
+.toggleBtnActive {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-weight: var(--font-weight-semibold);
+}

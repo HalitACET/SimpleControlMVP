@@ -1,7 +1,44 @@
+.page {
+  padding: var(--space-xl);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-xl);
+}
+
+.btnNew {
+  height: 36px;
+  padding: 0 var(--space-lg);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.btnNew:hover {
+  background-color: var(--color-accent-hover);
 }
 
 .card {

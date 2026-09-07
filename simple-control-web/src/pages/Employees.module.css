@@ -1,3 +1,65 @@
+.page {
+  padding: var(--space-xl);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.searchContainer {
+  flex: 1;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-body-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.checkbox {
+  cursor: pointer;
+}
+
+.btnNew {
+  height: 36px;
+  padding: 0 var(--space-lg);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.btnNew:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.error {
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+  border-radius: var(--radius-sm);
+}
+
 .card {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -70,6 +132,18 @@
   text-align: center;
   color: var(--color-text-secondary);
   font-size: var(--font-size-body);
+}
+
+.trInactive {
+  opacity: 0.6;
+}
+
+.placeholder {
+  color: var(--color-text-secondary);
+}
+
+.mono {
+  font-family: var(--font-family-mono);
 }
 
 /* Skeleton loader */
