@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Control — Personel giriş-çıkış takibi, telefondan</title>
+  <meta name="description" content="Terminal cihazına gerek yok. Personel kendi telefonuyla QR okutur veya konumuyla giriş yapar; İK puantajı otomatik alır.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ ÜST BAR ============ -->
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="#top">
+      <span class="brand__mark">SC</span>
+      <span class="brand__name">Simple Control</span>
+    </a>
+    <nav class="topbar__links">
+      <a href="#cozum">Çözüm</a>
+      <a href="#nasil-calisir">Nasıl çalışır</a>
+      <a href="#ekranlar">Ekranlar</a>
+      <a href="#teknik">Teknik</a>
+      <a href="#demo">Demo</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ 1. HERO ============ -->
+<section class="hero" id="top">
+  <div class="container hero__grid">
+    <div>
+      <span class="eyebrow">PDKS · Personel Devam Kontrol Sistemi</span>
+      <h1>Simple Control</h1>
+      <p class="hero__tagline">Personel giriş-çıkış takibi, telefondan.</p>
+      <p class="hero__desc">
+        Terminal cihazına gerek yok. Personel kendi telefonuyla kapıdaki QR kodu
+        okutur veya tesis alanındayken konumuyla giriş yapar. Puantaj arka planda
+        kendiliğinden hesaplanır.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href="https://simple-control-mvp.vercel.app" target="_blank" rel="noopener">Canlı Demo</a>
+        <a class="btn btn--ghost" href="https://github.com/HalitACET/SimpleControlMVP" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="hero__meta">
+        <div><strong>QR + GPS</strong>iki okutma yöntemi</div>
+        <div><strong>Çevrimdışı</strong>internetsiz de çalışır</div>
+        <div><strong>Otomatik</strong>puantaj ve Excel çıktısı</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <img src="img/home.png" alt="Simple Control mobil uygulama ana ekranı" width="288">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. SORUN ============ -->
+<section class="section" id="sorun">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow">Sorun</span>
+      <h2>Klasik devam takibi pahalı ve güvenilmez</h2>
+      <p>Küçük ve orta ölçekli işletmelerin çoğu ya kart terminaline para veriyor ya da kağıt puantajla uğraşıyor.</p>
+    </div>
+
+    <div class="grid grid--3 reveal">
+      <article class="card card--problem">
+        <div class="card__icon">₺</div>
+        <h3>Terminal cihazı pahalı</h3>
+        <p>Her kapıya ayrı donanım, kablolama, kurulum ve yıllık bakım maliyeti çıkar. Şube açıldıkça masraf katlanır.</p>
+      </article>
+      <article class="card card--problem">
+        <div class="card__icon">✎</div>
+        <h3>Kağıt puantaj hataya açık</h3>
+        <p>Elle giriş, kayıp kayıt, okunmayan imza. Ay sonunda itirazı çözecek kanıt olmuyor.</p>
+      </article>
+      <article class="card card--problem">
+        <div class="card__icon">⚠</div>
+        <h3>Sahte giriş kolay</h3>
+        <p>Kart başkasına verilir, konum taklit edilir. Kimin gerçekten geldiğini doğrulamanın yolu yoktur.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. ÇÖZÜM ============ -->
+<section class="section section--sunken" id="cozum">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow">Çözüm</span>
+      <h2>Personelin cebindeki telefon yeter</h2>
+      <p>Okutma anında konum da doğrulanır; şüpheli kayıtlar işaretlenir ve mesai hesabına girmez.</p>
+    </div>
+
+    <div class="grid grid--4 reveal">
+      <article class="feature">
+        <div class="feature__shot"><img src="img/qr-tarama.jpeg" alt="QR kod tarama ekranı" loading="lazy"></div>
+        <div class="feature__body">
+          <h3>QR ile okutma</h3>
+          <p>Kapıdaki kodu okut, konum aynı anda doğrulanır.</p>
+        </div>
+      </article>
+      <article class="feature">
+        <div class="feature__shot"><img src="img/gecis-gecersiz.jpg" alt="Tesis dışı okutma uyarısı" loading="lazy"></div>
+        <div class="feature__body">
+          <h3>Konum doğrulama</h3>
+          <p>Tesis alanı dışındaki okutmalar kaydedilir ama geçersiz olarak işaretlenir.</p>
+        </div>
+      </article>
+      <article class="feature">
+        <div class="feature__shot"><img src="img/success.png" alt="Çevrimdışı kayıt başarı ekranı" loading="lazy"></div>
+        <div class="feature__body">
+          <h3>Çevrimdışı çalışma</h3>
+          <p>İnternet yokken kayıt cihazda tutulur, bağlantı gelince kendiliğinden gönderilir.</p>
+        </div>
+      </article>
+      <article class="feature">
+        <div class="feature__shot"><img src="img/web-10-monthly-report.png" alt="Aylık puantaj raporu" loading="lazy"></div>
+        <div class="feature__body">
+          <h3>Otomatik puantaj</h3>
+          <p>Giriş/çıkış eşleştirmesi, mola, geç kalma ve fazla mesai otomatik hesaplanır.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. NASIL ÇALIŞIR ============ -->
+<section class="section" id="nasil-calisir">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Nasıl çalışır</span>
+      <h2>Üç adımda kurulum ve kullanım</h2>
+    </div>
+
+    <div class="step reveal">
+      <div class="step__num">1</div>
+      <div class="step__text">
+        <h3>İK lokasyonu tanımlar</h3>
+        <p>Haritadan tesis konumu ve yarıçapı seçilir, o lokasyona ait QR kod otomatik üretilir ve yazdırılır.</p>
+      </div>
+      <div class="step__shot"><img src="img/web-05-location-modal.png" alt="Haritadan lokasyon tanımlama" loading="lazy"></div>
+    </div>
+
+    <div class="step reveal">
+      <div class="step__num">2</div>
+      <div class="step__text">
+        <h3>Personel okutur</h3>
+        <p>Telefonuyla kapıdaki QR kodu okutur veya kamerasız yöntemde konumuyla giriş yapar.</p>
+      </div>
+      <div class="step__shot step__shot--phone"><img src="img/confirm.png" alt="Geçiş onay ekranı" loading="lazy"></div>
+    </div>
+
+    <div class="step reveal">
+      <div class="step__num">3</div>
+      <div class="step__text">
+        <h3>İK raporu görür</h3>
+        <p>Günlük devam, aylık puantaj ve gün gün çalışma aralıkları panelde; tek tıkla Excel çıktısı alınır.</p>
+      </div>
+      <div class="step__shot"><img src="img/web-09-daily-report.png" alt="Günlük devam raporu" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. TANITIM VİDEOSU ============ -->
+<!--
+  VIDEO YER TUTUCU
+  Video hazir olunca asagidaki .video-placeholder blogunu silip yerine
+  ya bir <video src="video/tanitim.mp4" controls poster="img/home.png"></video>
+  ya da YouTube icin <iframe src="https://www.youtube.com/embed/VIDEO_ID" ...></iframe> koy.
+  Kapsayici zaten 16:9 oraninda.
+-->
+<section class="section section--dark" id="video">
+  <div class="container">
+    <div class="section-head section-head--center reveal">
+      <span class="eyebrow">Tanıtım</span>
+      <h2>Nasıl kullanılır</h2>
+      <p>Uygulamanın uçtan uca kullanımını gösteren kısa video.</p>
+    </div>
+    <div class="video-placeholder reveal">
+      <div>
+        <div class="video-placeholder__play">▶</div>
+        <p><strong>Video yakında</strong>Kayıt tamamlandığında bu alana eklenecek.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. EKRAN GÖRÜNTÜLERİ ============ -->
+<section class="section" id="ekranlar">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Ekranlar</span>
+      <h2>Ekran görüntüleri</h2>
+      <p>Görsele tıklayınca büyür. Mobil tarafta güvenlik ve çevrimdışı test senaryolarının çıktıları da yer alıyor.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Ekran görüntüsü kategorileri">
+      <button class="tab" id="tab-mobil" role="tab" aria-selected="true" aria-controls="panel-mobil">Mobil</button>
+      <button class="tab" id="tab-web" role="tab" aria-selected="false" aria-controls="panel-web">Web Paneli</button>
+    </div>
+
+    <!-- ---- MOBİL ---- -->
+    <div class="tab-panel" id="panel-mobil" role="tabpanel" aria-labelledby="tab-mobil">
+
+      <h3 class="gallery-group-title">Giriş ve ana ekran</h3>
+      <div class="gallery gallery--phone">
+        <figure class="shot"><img src="img/login.jpeg" alt="" loading="lazy"><figcaption>Firma kodu, kart numarası ve şifre ile giriş.</figcaption></figure>
+        <figure class="shot"><img src="img/sifre-degistirme.jpeg" alt="" loading="lazy"><figcaption>İlk girişte zorunlu şifre değişimi.</figcaption></figure>
+        <figure class="shot"><img src="img/home.png" alt="" loading="lazy"><figcaption>Ana ekran — anlık durum, vardiya ve günlük süre.</figcaption></figure>
+        <figure class="shot"><img src="img/home-icerde.jpeg" alt="" loading="lazy"><figcaption>İçerideyken sıradaki hareket çıkış olarak önerilir.</figcaption></figure>
+        <figure class="shot"><img src="img/home-disarda.jpeg" alt="" loading="lazy"><figcaption>Dışarıdayken sıradaki hareket giriş olarak önerilir.</figcaption></figure>
+        <figure class="shot"><img src="img/profil.jpeg" alt="" loading="lazy"><figcaption>Profil ekranı — hesap ve cihaz bilgileri.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Okutma akışı</h3>
+      <div class="gallery gallery--phone">
+        <figure class="shot"><img src="img/qr-tarama.jpeg" alt="" loading="lazy"><figcaption>Kapıdaki QR kodun kamerayla okutulması.</figcaption></figure>
+        <figure class="shot"><img src="img/tc03-konum-dogrulaniyor.jpeg" alt="" loading="lazy"><figcaption>Okutma sırasında konum doğrulanıyor.</figcaption></figure>
+        <figure class="shot"><img src="img/gecis-onay.jpeg" alt="" loading="lazy"><figcaption>Kayıt oluşmadan önce geçiş onayı istenir.</figcaption></figure>
+        <figure class="shot"><img src="img/confirm.png" alt="" loading="lazy"><figcaption>Onay ekranında saat, yöntem ve koordinat gösterilir.</figcaption></figure>
+        <figure class="shot"><img src="img/gecis-basarili.jpeg" alt="" loading="lazy"><figcaption>Geçiş başarıyla kaydedildi.</figcaption></figure>
+        <figure class="shot"><img src="img/success.png" alt="" loading="lazy"><figcaption>İnternet yokken kayıt cihazda saklandı.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Geçmiş ve puantaj</h3>
+      <div class="gallery gallery--phone">
+        <figure class="shot"><img src="img/gecmis.jpeg" alt="" loading="lazy"><figcaption>Okutma geçmişi listesi.</figcaption></figure>
+        <figure class="shot"><img src="img/gecmis-gunluk.jpg" alt="" loading="lazy"><figcaption>Günlük özet — giriş, çıkış ve çalışılan süre.</figcaption></figure>
+        <figure class="shot"><img src="img/gecmis-gun-detay.jpg" alt="" loading="lazy"><figcaption>Gün detayı — o güne ait tüm okutmalar.</figcaption></figure>
+        <figure class="shot"><img src="img/profil-bu-ay.jpg" alt="" loading="lazy"><figcaption>Personelin kendi aylık puantaj özeti.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Güvenlik ve hata durumları</h3>
+      <div class="gallery gallery--phone">
+        <figure class="shot"><img src="img/gecis-gecersiz.jpg" alt="" loading="lazy"><figcaption>Tesis alanı dışında yapılan okutma geçersiz sayıldı.</figcaption></figure>
+        <figure class="shot"><img src="img/fake-location.png" alt="" loading="lazy"><figcaption>Sahte konum uygulaması tespit edilince okutma engellendi.</figcaption></figure>
+        <figure class="shot"><img src="img/konum-kapali-hata.jpg" alt="" loading="lazy"><figcaption>Konum servisleri kapalıyken okutma yapılamaz.</figcaption></figure>
+        <figure class="shot"><img src="img/tc01-cihaz-eslestirildi.jpeg" alt="" loading="lazy"><figcaption>TC01 — hesap ilk giriş yapılan cihaza eşleştirildi.</figcaption></figure>
+        <figure class="shot"><img src="img/tc01-device-mismatch.jpeg" alt="" loading="lazy"><figcaption>TC01 — farklı cihazdan giriş denemesi engellendi.</figcaption></figure>
+        <figure class="shot"><img src="img/tc03-gps-kapali.jpeg" alt="" loading="lazy"><figcaption>TC03 — GPS kapalıyken okutma reddedildi.</figcaption></figure>
+        <figure class="shot"><img src="img/tc04-fake-gps-ekrani.jpeg" alt="" loading="lazy"><figcaption>TC04 — sahte konum uygulaması cihazda tespit edildi.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Çevrimdışı senkronizasyon (TC02)</h3>
+      <div class="gallery gallery--phone">
+        <figure class="shot"><img src="img/tc02-offline-basari.jpeg" alt="" loading="lazy"><figcaption>İnternetsizken yapılan okutma cihazda kuyruğa alındı.</figcaption></figure>
+        <figure class="shot"><img src="img/tc02-ana-ekran-bekliyor.jpeg" alt="" loading="lazy"><figcaption>Ana ekranda senkronizasyon bekleyen kayıt rozeti.</figcaption></figure>
+        <figure class="shot"><img src="img/tc02-gecmis-bekliyor.jpeg" alt="" loading="lazy"><figcaption>Geçmişte bekleyen kayıt ayrıca işaretlenir.</figcaption></figure>
+        <figure class="shot"><img src="img/tc02-sync-sonrasi.jpeg" alt="" loading="lazy"><figcaption>Bağlantı gelince kayıtlar sunucuya gönderildi.</figcaption></figure>
+      </div>
+    </div>
+
+    <!-- ---- WEB PANELİ ---- -->
+    <div class="tab-panel" id="panel-web" role="tabpanel" aria-labelledby="tab-web" hidden>
+
+      <h3 class="gallery-group-title">Personel ve cihaz yönetimi</h3>
+      <div class="gallery gallery--wide">
+        <figure class="shot"><img src="img/web-01-login.png" alt="" loading="lazy"><figcaption>İK paneli giriş ekranı.</figcaption></figure>
+        <figure class="shot"><img src="img/web-02-employees.png" alt="" loading="lazy"><figcaption>Personel listesi, arama ve durum filtreleri.</figcaption></figure>
+        <figure class="shot"><img src="img/web-03-employee-drawer.png" alt="" loading="lazy"><figcaption>Personel detayı ve hesap yönetimi tek panelde.</figcaption></figure>
+        <figure class="shot"><img src="img/web-13-devices.png" alt="" loading="lazy"><figcaption>Kayıtlı cihazlar ve eşleşme kaldırma.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Lokasyon, QR ve vardiya</h3>
+      <div class="gallery gallery--wide">
+        <figure class="shot"><img src="img/web-04-locations.png" alt="" loading="lazy"><figcaption>Tanımlı lokasyonlar ve geofence yarıçapları.</figcaption></figure>
+        <figure class="shot"><img src="img/web-05-location-modal.png" alt="" loading="lazy"><figcaption>Haritadan tesis konumu ve yarıçap seçimi.</figcaption></figure>
+        <figure class="shot"><img src="img/web-06-qr-print.png" alt="" loading="lazy"><figcaption>Lokasyona ait QR kodun yazdırma önizlemesi.</figcaption></figure>
+        <figure class="shot"><img src="img/web-12-shifts.png" alt="" loading="lazy"><figcaption>Vardiya tanımları — saat aralığı, mola ve toleranslar.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Okutma kayıtları ve raporlar</h3>
+      <div class="gallery gallery--wide">
+        <figure class="shot"><img src="img/web-07-scans.png" alt="" loading="lazy"><figcaption>Okutma kayıtları, filtreler ve şüpheli işaretleri.</figcaption></figure>
+        <figure class="shot"><img src="img/web-08-scan-exclude.png" alt="" loading="lazy"><figcaption>Gerekçe girilerek okutma iptali.</figcaption></figure>
+        <figure class="shot"><img src="img/web-09-daily-report.png" alt="" loading="lazy"><figcaption>Günlük devam raporu.</figcaption></figure>
+        <figure class="shot"><img src="img/web-10-monthly-report.png" alt="" loading="lazy"><figcaption>Aylık puantaj raporu ve Excel çıktısı.</figcaption></figure>
+        <figure class="shot"><img src="img/web-11-monthly-detail.png" alt="" loading="lazy"><figcaption>Aylık detay — gün gün çalışma aralıkları.</figcaption></figure>
+      </div>
+
+      <h3 class="gallery-group-title">Arşiv — ilk panel sürümü</h3>
+      <p class="gallery-group-note">
+        Panel önce statik HTML olarak yazıldı, sonra React'e taşındı. Aşağıdaki görüntüler
+        o ilk sürüme aittir ve güncel arayüzü göstermez; projenin gelişimini belgelemek için duruyor.
+      </p>
+      <div class="gallery gallery--wide">
+        <figure class="shot"><img src="img/panel-dashboard.png" alt="" loading="lazy"><figcaption>İlk sürüm — özet ekranı ve son hareketler.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-personel.png" alt="" loading="lazy"><figcaption>İlk sürüm — personel yönetimi.</figcaption></figure>
+        <figure class="shot"><img src="img/Screenshot_1.png" alt="" loading="lazy"><figcaption>İlk sürüm — yeni personel tanımlama penceresi.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-cihazlar.png" alt="" loading="lazy"><figcaption>İlk sürüm — kayıtlı cihazlar.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-gecisler.png" alt="" loading="lazy"><figcaption>İlk sürüm — geçiş kayıtları.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-supheli-denemeler.png" alt="" loading="lazy"><figcaption>İlk sürüm — şüpheli okutma denemeleri.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-lokasyonlar-qr.png" alt="" loading="lazy"><figcaption>İlk sürüm — lokasyon QR kodu.</figcaption></figure>
+        <figure class="shot"><img src="img/7456745.png" alt="" loading="lazy"><figcaption>İlk sürüm — lokasyon yönetimi listesi.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-vardiyalar.png" alt="" loading="lazy"><figcaption>İlk sürüm — vardiya tanımları.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-puantaj.png" alt="" loading="lazy"><figcaption>İlk sürüm — puantaj tablosu.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-puantaj-duzelt.png" alt="" loading="lazy"><figcaption>İlk sürüm — puantaj düzeltme ekranı.</figcaption></figure>
+        <figure class="shot"><img src="img/panel-silme-gerekce.png" alt="" loading="lazy"><figcaption>İlk sürüm — gerekçeli kayıt silme.</figcaption></figure>
+        <figure class="shot"><img src="img/export-excel.png" alt="" loading="lazy"><figcaption>İlk sürüm — CSV puantaj çıktısının Excel'de görünümü.</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. TEKNİK DETAYLAR ============ -->
+<section class="section section--dark" id="teknik">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Teknik</span>
+      <h2>Mimari ve tasarım kararları</h2>
+      <p>Üç istemci, tek REST API, tek veritabanı. Kimlik doğrulama JWT ile, şema değişiklikleri Flyway migration'larıyla yönetilir.</p>
+    </div>
+
+    <div class="arch reveal">
+      <div class="arch__row">
+        <div class="arch__node">
+          <h4>Mobil</h4>
+          <span>React Native</span>
+          <ul>
+            <li>Keychain ile token saklama</li>
+            <li>Çevrimdışı kuyruk</li>
+            <li>Sahte konum tespiti</li>
+          </ul>
+        </div>
+
+        <div class="arch__link">
+          <span class="arch__arrow">&#8596;</span>
+          REST / JWT
+        </div>
+
+        <div class="arch__node arch__node--accent">
+          <h4>Backend</h4>
+          <span>Spring Boot · Java 17</span>
+          <ul>
+            <li>Spring Security</li>
+            <li>Okutma doğrulama</li>
+            <li>Puantaj hesaplama</li>
+          </ul>
+        </div>
+
+        <div class="arch__link">
+          <span class="arch__arrow">&#8596;</span>
+          REST / JWT
+        </div>
+
+        <div class="arch__node">
+          <h4>İK Paneli</h4>
+          <span>React · Vite</span>
+          <ul>
+            <li>Personel ve vardiya</li>
+            <li>Lokasyon ve QR</li>
+            <li>Raporlar ve Excel</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="arch__link arch__link--down">
+        <span class="arch__arrow">&#8595;</span>
+        JPA / Flyway
+      </div>
+
+      <div class="arch__node arch__db">
+        <h4>PostgreSQL 17</h4>
+        <span>Veritabanı</span>
+        <ul>
+          <li>Yalnızca ham okutma saklanır</li>
+          <li>Zaman damgaları yerel saat</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-head reveal" style="margin-top: 72px;">
+      <h2>Teknolojiler</h2>
+    </div>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>Katman</th><th>Teknoloji</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Mobil</strong></td><td>React Native 0.86, TypeScript, React Navigation, Axios</td></tr>
+          <tr><td><strong>Güvenli depolama</strong></td><td>react-native-keychain (JWT + cihaz kimliği)</td></tr>
+          <tr><td><strong>Konum &amp; kamera</strong></td><td>react-native-geolocation-service, react-native-vision-camera</td></tr>
+          <tr><td><strong>Güvenlik</strong></td><td>jail-monkey (mock/root tespiti), sunucu tarafı anomali analizi</td></tr>
+          <tr><td><strong>Çevrimdışı</strong></td><td>AsyncStorage kuyruğu + NetInfo bağlantı dinleyici</td></tr>
+          <tr><td><strong>Backend</strong></td><td>Java 17, Spring Boot 4.1, Spring Security, JWT (jjwt)</td></tr>
+          <tr><td><strong>Veritabanı</strong></td><td>PostgreSQL 17, Spring Data JPA / Hibernate, Flyway</td></tr>
+          <tr><td><strong>Web paneli</strong></td><td>React 19, Vite, TypeScript, CSS Modules, Leaflet, SheetJS</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head reveal" style="margin-top: 72px;">
+      <h2>Tasarım kararları</h2>
+    </div>
+    <div class="grid grid--2 reveal">
+      <article class="decision">
+        <h3>Ham veri saklanır, sonuç hesaplanır</h3>
+        <p>Veritabanında yalnızca okutma kaydı tutulur. Giriş/çıkış eşleştirmesi ve geç kalma hesabı saklanmaz, rapor sorgusunda anlık üretilir. Vardiya tanımı değişince geçmiş dönem kendiliğinden doğru hesaplanır.</p>
+      </article>
+      <article class="decision">
+        <h3>Okutma tip taşımaz</h3>
+        <p>Kayıtta "giriş" veya "çıkış" alanı yoktur. Günün okutmaları sırayla eşleştirilir: (1.–2.), (3.–4.)… Her çift bir çalışma aralığıdır; tek sayıda okutma kalırsa gün eksik çıkış sayılır.</p>
+      </article>
+      <article class="decision">
+        <h3>Mola aralık olarak tanımlanır</h3>
+        <p>Vardiyaya "60 dakika mola" değil, "12:30–13:30 arası mola" girilir. Çalışma aralıklarıyla molanın kesişimi düşülür — personel molada çıkış okutsa da okutmasa da sonuç aynı olur, çift düşme yaşanmaz.</p>
+      </article>
+      <article class="decision">
+        <h3>Zaman yönetimi yerel saattir</h3>
+        <p>Tüm zamanlar Europe/Istanbul. İstemciler yerel saat gönderir, sunucu dönüşüm yapmaz, veritabanı saat dilimi bilgisi olmadan saklar. Gece vardiyası gün devirlerinde kayma yaşanmaz.</p>
+      </article>
+    </div>
+
+    <div class="section-head reveal" style="margin-top: 72px;">
+      <h2>Güvenlik katmanları</h2>
+      <p>Okutma isteği hem cihazda hem sunucuda denetlenir. Şüpheli kayıtlar silinmez; işaretlenir, mesai hesabına katılmaz ve personel bunu uygulamada görür.</p>
+    </div>
+    <div class="table-wrap reveal">
+      <table>
+        <thead>
+          <tr><th>Durum</th><th>Sonuç</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Sahte konum uygulaması tespit edildi</td><td><span class="pill pill--block">Okutma yapılamaz</span></td></tr>
+          <tr><td>Konum servisleri kapalı</td><td><span class="pill pill--block">Okutma yapılamaz</span></td></tr>
+          <tr><td>Tesis alanı dışında (geofence)</td><td><span class="pill pill--flag">Kaydedilir, geçersiz işaretlenir</span></td></tr>
+          <tr><td>İmkânsız hız (iki okutma arası mesafe/süre)</td><td><span class="pill pill--flag">Kaydedilir, işaretlenir</span></td></tr>
+          <tr><td>Cihaz eşleşmiyor</td><td><span class="pill pill--block">Giriş reddedilir</span></td></tr>
+          <tr><td>Personel pasif</td><td><span class="pill pill--block">Giriş ve okutma reddedilir</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. DEMO VE İNDİRME ============ -->
+<section class="section" id="demo">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Deneyin</span>
+      <h2>Canlı demo ve uygulama</h2>
+      <p>Panel gerçek bir sunucuda çalışıyor. Demo hesabıyla girip tüm ekranları gezebilirsiniz.</p>
+    </div>
+
+    <div class="demo-grid reveal">
+      <div>
+        <div class="hero__actions" style="margin-top: 0;">
+          <a class="btn btn--primary" href="https://simple-control-mvp.vercel.app" target="_blank" rel="noopener">İK Panelini Aç</a>
+          <!-- APK yuklendikten sonra href degeri Drive baglantisiyla degistirilecek -->
+          <a class="btn btn--outline" href="#">Android APK İndir</a>
+        </div>
+        <div class="notice">
+          <span>⚠</span>
+          <p style="margin: 0;">Sunucu ücretsiz katmanda çalıştığı için ilk açılışta 2-3 dakika uyanma süresi olabilir. Sayfa hemen yanıt vermezse bir süre bekleyip tekrar deneyin.</p>
+        </div>
+      </div>
+
+      <div class="creds">
+        <h3>Demo hesabı</h3>
+        <dl>
+          <dt>Firma kodu</dt><dd>ATLAS01</dd>
+          <dt>Kullanıcı</dt><dd>admin</dd>
+          <dt>Şifre</dt><dd>Admin1234</dd>
+        </dl>
+        <p class="creds__note">
+          Mobil uygulama için kart numaraları 1001–1005, şifre Demo1234.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. GELİŞTİRİCİ ============ -->
+<section class="section section--sunken" id="gelistirici">
+  <div class="container">
+    <div class="dev reveal">
+      <div class="dev__avatar">HA</div>
+      <div class="dev__info">
+        <h3>Halit ACET</h3>
+        <p>
+          Fırat Üniversitesi Yazılım Mühendisliği öğrencisi. Simple Control,
+          Simple Software bünyesinde yürütülen zorunlu staj kapsamında
+          uçtan uca geliştirilmiş bir bitirme projesidir.
+        </p>
+        <a class="btn btn--outline" href="https://github.com/HalitACET/SimpleControlMVP" target="_blank" rel="noopener">GitHub'da İncele</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span>Simple Control — Personel Devam Kontrol Sistemi</span>
+    <span><a href="https://github.com/HalitACET/SimpleControlMVP" target="_blank" rel="noopener">github.com/HalitACET/SimpleControlMVP</a></span>
+  </div>
+</footer>
+
+<!-- Buyutulmus gorsel -->
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox__close" id="lightboxClose" aria-label="Kapat">&times;</button>
+  <img src="" alt="" id="lightboxImg">
+  <p class="lightbox__caption" id="lightboxCaption"></p>
+</div>
+
+<script>
+  // ---------- Sekmeler ----------
+  var tabs = [
+    { tab: document.getElementById('tab-mobil'), panel: document.getElementById('panel-mobil') },
+    { tab: document.getElementById('tab-web'), panel: document.getElementById('panel-web') }
+  ];
+
+  tabs.forEach(function (item) {
+    item.tab.addEventListener('click', function () {
+      tabs.forEach(function (other) {
+        var active = other === item;
+        other.tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        other.panel.hidden = !active;
+      });
+    });
+  });
+
+  // ---------- Lightbox ----------
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCaption = document.getElementById('lightboxCaption');
+
+  function openLightbox(src, caption) {
+    lightboxImg.src = src;
+    lightboxCaption.textContent = caption;
+    lightbox.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.shot').forEach(function (shot) {
+    shot.addEventListener('click', function () {
+      var img = shot.querySelector('img');
+      var caption = shot.querySelector('figcaption');
+      openLightbox(img.getAttribute('src'), caption ? caption.textContent : '');
+    });
+  });
+
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+
+  lightbox.addEventListener('click', function (event) {
+    if (event.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !lightbox.hidden) closeLightbox();
+  });
+
+  // ---------- Kaydirinca belirme ----------
+  var revealItems = document.querySelectorAll('.reveal');
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    revealItems.forEach(function (item) { observer.observe(item); });
+  } else {
+    revealItems.forEach(function (item) { item.classList.add('is-visible'); });
+  }
+</script>
+
+</body>
+</html>
