@@ -72,6 +72,17 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+/**
+ * Release imzalama bilgileri repoya girmeyen android/keystore.properties
+ * dosyasindan okunur. Dosya yoksa sadece release imzalama devre disi kalir,
+ * debug derlemeleri etkilenmez.
+ */
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -92,15 +103,21 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (keystoreProperties['SIMPLE_CONTROL_UPLOAD_STORE_FILE'] != null) {
+                storeFile file(keystoreProperties['SIMPLE_CONTROL_UPLOAD_STORE_FILE'])
+                storePassword keystoreProperties['SIMPLE_CONTROL_UPLOAD_STORE_PASSWORD']
+                keyAlias keystoreProperties['SIMPLE_CONTROL_UPLOAD_KEY_ALIAS']
+                keyPassword keystoreProperties['SIMPLE_CONTROL_UPLOAD_KEY_PASSWORD']
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
