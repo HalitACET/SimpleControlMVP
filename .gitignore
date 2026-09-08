@@ -38,5 +38,4 @@ PdksMobile/.expo/
 PdksMobile/coverage/
 
 # 5. Hassas ve Kişisel Dosyalar (Secrets & Local Configs)
-pdks-backend/src/main/resources/application.properties
 pdks-backend/src/main/resources/tls-override.security
