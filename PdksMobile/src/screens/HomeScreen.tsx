@@ -12,7 +12,12 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useIsFocused} from '@react-navigation/native';
 import {getToken, removeToken} from '../services/auth';
-import {getNextAction, getMyDaily} from '../services/api';
+import {
+  getNextAction,
+  getMyDaily,
+  useSlowRequest,
+  SLOW_REQUEST_MESSAGE,
+} from '../services/api';
 import {NextActionResponse, DailyItem} from '../types/api';
 import {useSession, clearSession} from '../store/session';
 import {colors, typography, spacing, radius} from '../theme';
@@ -58,6 +63,7 @@ export default function HomeScreen({navigation}: Props) {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [online, setOnline] = useState<boolean>(isOnline());
   const [queueCount, setQueueCount] = useState<number>(0);
+  const isSlowLoad = useSlowRequest(loading);
 
   // Subscribe to connectivity and queue size changes
   useEffect(() => {
@@ -199,6 +205,9 @@ export default function HomeScreen({navigation}: Props) {
       return (
         <Card style={styles.loadingCard}>
           <ActivityIndicator size="small" color={colors.primary} />
+          {isSlowLoad && (
+            <Text style={styles.bottomCardSub}>{SLOW_REQUEST_MESSAGE}</Text>
+          )}
         </Card>
       );
     }

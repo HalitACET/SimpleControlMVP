@@ -15,7 +15,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../navigation/AppNavigator';
-import {login} from '../services/api';
+import {login, useSlowRequest, SLOW_REQUEST_MESSAGE} from '../services/api';
 import {saveToken, saveFullName, saveFirmId} from '../services/auth';
 import {
   getOrCreateDeviceId,
@@ -36,6 +36,7 @@ export default function LoginScreen({navigation}: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<'firm' | 'username' | 'password' | null>(null);
+  const isSlowLogin = useSlowRequest(isLoading);
 
   const handleLogin = async () => {
     if (!firmId.trim() || !username.trim() || !password.trim()) {
@@ -219,6 +220,10 @@ export default function LoginScreen({navigation}: Props) {
               loading={isLoading}
               style={styles.loginBtn}
             />
+
+            {isSlowLogin && (
+              <Text style={styles.infoText}>{SLOW_REQUEST_MESSAGE}</Text>
+            )}
 
             <Text style={styles.infoText}>
               Şifrenizi unuttuysanız İK birimine başvurun.

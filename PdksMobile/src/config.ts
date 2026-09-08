@@ -1,12 +1,13 @@
 /**
  * API yapılandırması — tek yerden yönetilen base URL.
  *
- * ÖNEMLİ: Android cihazdan "localhost" çalışmaz.
- * USB ile bağlı gerçek cihaz için bilgisayarının yerel IP adresini kullan.
- * Örnek: ipconfig komutunu çalıştır → "Wireless LAN adapter Wi-Fi" altındaki
- *         "IPv4 Address" değerini al → aşağıya yaz (port 8080 sabit kalacak).
+ * Üretim: Render üzerindeki canlı sunucu. HTTPS zorunlu, çünkü Android 9+
+ * düz HTTP bağlantılarına izin vermiyor.
  *
- * Emülatör kullanıyorsan: http://10.0.2.2:8080
- * Gerçek cihaz kullanıyorsan: http://192.168.X.X:8080  ← BU SATIRI GÜNCELLE
+ * Yerel geliştirmeye dönmek için aşağıdaki satırı aktif et:
+ *   - Emülatör kullanıyorsan: http://10.0.2.2:8080
+ *   - Gerçek cihaz kullanıyorsan bilgisayarının yerel IP'sini yaz
+ *     (ipconfig → "Wireless LAN adapter Wi-Fi" → "IPv4 Address", port 8080 sabit)
  */
-export const API_BASE_URL = 'http://192.168.1.101:8080';
+// Yerel gelistirme: 'http://192.168.1.101:8080'
+export const API_BASE_URL = 'https://simple-control-api.onrender.com';

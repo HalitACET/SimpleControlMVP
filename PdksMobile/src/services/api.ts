@@ -1,3 +1,4 @@
+import {useEffect, useState} from 'react';
 import axios from 'axios';
 import {API_BASE_URL} from '../config';
 import {
@@ -12,11 +13,42 @@ import {
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  // Render'in ucretsiz katmaninda sunucu uykudan uyanirken 30-50 saniye surebiliyor
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// ─── Yavas Istek Bildirimi ────────────────────────────────────────────────────
+
+export const SLOW_REQUEST_MESSAGE =
+  'Sunucu uyanıyor, bu ilk açılışta biraz sürebilir…';
+
+const SLOW_REQUEST_THRESHOLD_MS = 5000;
+
+/**
+ * Devam eden bir istek esikten uzun surerse true doner; istek biter bitmez
+ * (basarili da olsa hatali da) false'a doner. Kisa isteklerde hic true olmaz.
+ */
+export function useSlowRequest(
+  isPending: boolean,
+  thresholdMs: number = SLOW_REQUEST_THRESHOLD_MS,
+): boolean {
+  const [isSlow, setIsSlow] = useState(false);
+
+  useEffect(() => {
+    if (!isPending) {
+      setIsSlow(false);
+      return;
+    }
+
+    const timer = setTimeout(() => setIsSlow(true), thresholdMs);
+    return () => clearTimeout(timer);
+  }, [isPending, thresholdMs]);
+
+  return isSlow;
+}
 
 // ─── Auth API Fonksiyonları ───────────────────────────────────────────────────
 
